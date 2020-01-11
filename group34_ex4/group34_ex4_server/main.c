@@ -1,3 +1,7 @@
-int main() {
-	return 0;
+
+#include "Server.h"
+
+int main()
+{
+	MainServer();
 }
