@@ -79,6 +79,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -119,6 +122,7 @@
   <ItemGroup>
     <ClCompile Include="..\Shared\SocketSendRecvTools.c" />
     <ClCompile Include="ConnectionThread.c" />
+    <ClCompile Include="ListenThread.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Server.c" />
   </ItemGroup>
@@ -127,6 +131,7 @@
     <ClInclude Include="..\Shared\SocketSendRecvTools.h" />
     <ClInclude Include="ConnectionThread.h" />
     <ClInclude Include="HardCodedData.h" />
+    <ClInclude Include="ListenThread.h" />
     <ClInclude Include="Server.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

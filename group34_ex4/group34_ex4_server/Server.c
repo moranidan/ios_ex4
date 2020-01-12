@@ -13,12 +13,17 @@ SOCKET ThreadInputs[NUM_OF_WORKER_THREADS];
 
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
-static int FindFirstUnusedThreadSlot();
+//static int FindFirstUnusedThreadSlot();
 static void CleanupWorkerThreads();
+static HANDLE CreateThreadSimple(
+	LPTHREAD_START_ROUTINE p_start_routine,
+	LPVOID p_thread_parameters,
+	LPDWORD p_thread_id
+);
 
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
-void MainServer()
+void MainServer(char *argv[])
 {
 	int Ind;
 	int Loop;
@@ -27,6 +32,16 @@ void MainServer()
 	SOCKADDR_IN service;
 	int bindRes;
 	int ListenRes;
+
+	HANDLE ListenThreadHandle = NULL;
+	DWORD ListenThreadID;
+	LISTEN_THREAD_params_t *p_lthread_params;
+	p_lthread_params = (LISTEN_THREAD_params_t *)calloc(1, sizeof(LISTEN_THREAD_params_t)); // allocate memory for thread parameters
+	if (NULL == p_lthread_params) {			// cheack if memery allocation was successful
+		printf("Error when allocating memory");
+		// return_code = ERR_CODE_DEFAULT;
+		goto server_cleanup_2;
+	}
 
 	// Initialize Winsock.
 	WSADATA wsaData;
@@ -72,7 +87,7 @@ void MainServer()
 
 	service.sin_family = AF_INET;
 	service.sin_addr.s_addr = Address;
-	service.sin_port = htons(SERVER_PORT); //The htons function converts a u_short from host to TCP/IP network byte order 
+	service.sin_port = htons(atoi(argv[1])); //The htons function converts a u_short from host to TCP/IP network byte order 
 									   //( which is big-endian ).
 	/*
 		The three lines following the declaration of sockaddr_in service are used to set up
@@ -103,10 +118,31 @@ void MainServer()
 	for (Ind = 0; Ind < NUM_OF_WORKER_THREADS; Ind++)
 		ThreadHandles[Ind] = NULL;
 
+	
+	p_lthread_params->ThreadHandles = ThreadHandles;
+	p_lthread_params->ThreadInputs = ThreadInputs;
+	p_lthread_params->MainSocket = &MainSocket;
+	printf("server.c1: %p\n", MainSocket);
+	printf("server.c2: %p\n", *(p_lthread_params->MainSocket));
+
+	ListenThreadHandle = CreateThreadSimple(ListenThread, p_lthread_params, &ListenThreadID);	// create thread
+	if (NULL == ListenThreadHandle) {	// check for errors when opening ListenThread
+		printf("Error when creating thread: %d\n", GetLastError());
+		goto server_cleanup_2;
+	}
+
 	printf("Waiting for a client to connect...\n");
 
-	for (Loop = 0; Loop < MAX_LOOPS; Loop++)
+	while (1)	//for (Loop = 0; Loop < MAX_LOOPS; Loop++)
 	{
+		char keyboard[6];
+		gets_s(keyboard, sizeof(keyboard)); //Reading a string from the keyboard
+
+		if (STRINGS_ARE_EQUAL(keyboard, "exit")) {
+			// TODO notify ListenThread
+			break;
+		}
+		/*
 		SOCKET AcceptSocket = accept(MainSocket, NULL, NULL);
 		if (AcceptSocket == INVALID_SOCKET)
 		{
@@ -138,13 +174,28 @@ void MainServer()
 				NULL
 			);
 		}
-	} // for ( Loop = 0; Loop < MAX_LOOPS; Loop++ )
-
+		*/
+	}
+	// close ListenThread
+	DWORD wait_code;
+	BOOL ret_val;
+	wait_code = WaitForSingleObject(ListenThreadHandle, THREAD_TIMEOUT);	// wait for thread to finish running
+	if (WAIT_OBJECT_0 != wait_code)			// check for errors
+	{
+		printf("Error when waiting\n");
+	}
+	ret_val = CloseHandle(ListenThreadHandle);
+	if (FALSE == ret_val)
+	{
+		printf("Error when closing thread: %d\n", GetLastError());
+	}
+	printf("reached here\n");
 server_cleanup_3:
 
 	CleanupWorkerThreads();
 
 server_cleanup_2:
+	free(p_lthread_params);
 	if (closesocket(MainSocket) == SOCKET_ERROR)
 		printf("Failed to close MainSocket, error %ld. Ending program\n", WSAGetLastError());
 
@@ -154,7 +205,7 @@ server_cleanup_1:
 }
 
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
-
+/*
 static int FindFirstUnusedThreadSlot()
 {
 	int Ind;
@@ -179,7 +230,7 @@ static int FindFirstUnusedThreadSlot()
 
 	return Ind;
 }
-
+*/
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
 static void CleanupWorkerThreads()
@@ -195,8 +246,8 @@ static void CleanupWorkerThreads()
 
 			if (Res == WAIT_OBJECT_0)
 			{
-				closesocket(ThreadInputs[Ind]);
-				CloseHandle(ThreadHandles[Ind]);
+				closesocket(ThreadInputs[Ind]);	// TODO check errors
+				CloseHandle(ThreadHandles[Ind]);// TODO same
 				ThreadHandles[Ind] = NULL;
 				break;
 			}
@@ -207,4 +258,41 @@ static void CleanupWorkerThreads()
 			}
 		}
 	}
+}
+
+static HANDLE CreateThreadSimple(
+	LPTHREAD_START_ROUTINE p_start_routine,
+	LPVOID p_thread_parameters,
+	LPDWORD p_thread_id
+) {
+	HANDLE thread_handle;
+
+	if (NULL == p_start_routine)
+	{
+		printf("Error when creating a thread\n");
+		printf("Received null pointer, start routine\n");
+		return NULL;		// return NULL, error will be caught in "create_threads"
+	}
+
+	if (NULL == p_thread_id)
+	{
+		printf("Error when creating a thread\n");
+		printf("Received null pointer, thread id\n");
+		return NULL;		// return NULL, error will be caught in "create_threads"
+	}
+
+	thread_handle = CreateThread(
+		NULL,                /*  default security attributes */
+		0,                   /*  use default stack size */
+		p_start_routine,     /*  thread function */
+		p_thread_parameters, /*  argument to thread function */
+		0,                   /*  use default creation flags */
+		p_thread_id);        /*  returns the thread identifier */
+
+	if (NULL == thread_handle)
+	{
+		printf("Couldn't create thread\n");
+	}
+
+	return thread_handle;
 }

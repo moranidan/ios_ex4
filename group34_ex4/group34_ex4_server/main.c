@@ -1,7 +1,8 @@
 
 #include "Server.h"
 
-int main()
+
+int main(int argc, char *argv[])
 {
-	MainServer();
+	MainServer(argv);
 }

@@ -33,6 +33,9 @@
     <ClCompile Include="ConnectionThread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ListenThread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Shared\SocketExampleShared.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ConnectionThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ListenThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
