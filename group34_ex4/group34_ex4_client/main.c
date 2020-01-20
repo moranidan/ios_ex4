@@ -18,7 +18,8 @@ Description - This project create the client program for the game
 #pragma warning(disable:4996) // in order to avoid warning about fopen being unsafe function.
 
 /*
-description
+In this entire project, we check for errors in each function that might fail.
+If there's a failure, we update the return code and use the 'goto' function to the end of main.c.
 */
 
 
@@ -30,24 +31,42 @@ int main(int argc, char *argv[]) {
 		return return_code;
 	}
 
-	unsigned long server_ip;		// server ip string
+	char *server_ip[MAX_IP_STRING_LEN];		// server ip string
+	server_ip[0] = '\0';
 	int server_port = 0;        //server port int
 	char *username[MAX_USER_NAME_INPUT];
 	SOCKET *p_server_socket;
 
-	// copy server ip string to the format used by TCP
-	server_ip = inet_addr(argv[1]);
+	//copy server ip string
+	strcpy_s(server_ip, MAX_IP_STRING_LEN, argv[1]);
 
 	//copy server port 
-	server_port = htons(argv[2]);
+	server_port = atoi(argv[2]);
 
 	//copy username string
 	strcpy_s(username, MAX_USER_NAME_INPUT, argv[3]);
 	strupr(username);
 
-	return_code = connecting_to_server(server_ip, server_port, &p_server_socket);
+	// create exit_residents mutex
+	HANDLE message_between_threads_mutex_handle = NULL;
+	if (create_and_check_mutex(&message_between_threads_mutex_handle, NULL, FALSE, MUTEX_MESSAGE_BETWEEN_THREADS_NAME, &return_code) != SUCCESS_CODE) {
+		goto SKIP;
+	}
+
+	return_code = connecting_to_server(server_ip, server_port, &p_server_socket,username);
+	if (return_code != SUCCESS_CODE) {
+		return return_code;
+	}
 
 
-	closesocket(*p_server_socket);
+	// close mutex handle and socket
+	close_handle(&message_between_threads_mutex_handle);
+	int err = closesocket(*p_server_socket);
+	if (err == SOCKET_ERROR)
+	{
+		printf("recv() failed, error %d\n", WSAGetLastError());
+		return ERR_CODE_SOCKET;
+	}
+SKIP:
 	return return_code;
 }

@@ -27,10 +27,10 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client_messages.c">
+    <ClCompile Include="group34_ex4_client.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="group34_ex4_client.c">
+    <ClCompile Include="game_logic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
