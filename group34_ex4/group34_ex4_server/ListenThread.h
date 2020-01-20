@@ -13,7 +13,7 @@
 #include "../Shared/SocketExampleShared.h"
 #include "../Shared/SocketSendRecvTools.h"
 #include "ConnectionThread.h"
-#include "Server.h"
+
 
 static int FindFirstUnusedThreadSlot(HANDLE *ThreadHandles);
 DWORD WINAPI ListenThread(LPVOID lpParam);

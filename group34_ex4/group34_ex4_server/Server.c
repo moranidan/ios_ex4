@@ -10,6 +10,7 @@
 
 HANDLE ThreadHandles[NUM_OF_WORKER_THREADS];
 SOCKET ThreadInputs[NUM_OF_WORKER_THREADS];
+HANDLE SpareHandle = NULL;		// handle for connection when we exceed the max. closed shortly after.
 
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
@@ -32,6 +33,7 @@ void MainServer(char *argv[])
 	SOCKADDR_IN service;
 	int bindRes;
 	int ListenRes;
+	BOOL Done = FALSE;
 
 	HANDLE ListenThreadHandle = NULL;
 	DWORD ListenThreadID;
@@ -121,9 +123,9 @@ void MainServer(char *argv[])
 	
 	p_lthread_params->ThreadHandles = ThreadHandles;
 	p_lthread_params->ThreadInputs = ThreadInputs;
+	p_lthread_params->SpareHandle = &SpareHandle;
 	p_lthread_params->MainSocket = &MainSocket;
-	printf("server.c1: %p\n", MainSocket);
-	printf("server.c2: %p\n", *(p_lthread_params->MainSocket));
+	p_lthread_params->Done = &Done;
 
 	ListenThreadHandle = CreateThreadSimple(ListenThread, p_lthread_params, &ListenThreadID);	// create thread
 	if (NULL == ListenThreadHandle) {	// check for errors when opening ListenThread
@@ -133,65 +135,38 @@ void MainServer(char *argv[])
 
 	printf("Waiting for a client to connect...\n");
 
-	while (1)	//for (Loop = 0; Loop < MAX_LOOPS; Loop++)
+	while (1)
 	{
 		char keyboard[6];
 		gets_s(keyboard, sizeof(keyboard)); //Reading a string from the keyboard
 
 		if (STRINGS_ARE_EQUAL(keyboard, "exit")) {
-			// TODO notify ListenThread
+			Done = TRUE;
 			break;
 		}
-		/*
-		SOCKET AcceptSocket = accept(MainSocket, NULL, NULL);
-		if (AcceptSocket == INVALID_SOCKET)
-		{
-			printf("Accepting connection with client failed, error %ld\n", WSAGetLastError());
-			goto server_cleanup_3;
-		}
 
-		printf("Client Connected.\n");
-
-		Ind = FindFirstUnusedThreadSlot();
-
-		if (Ind == NUM_OF_WORKER_THREADS) //no slot is available
-		{
-			printf("No slots available for client, dropping the connection.\n");
-			closesocket(AcceptSocket); //Closing the socket, dropping the connection.
-		}
-		else
-		{
-			ThreadInputs[Ind] = AcceptSocket; // shallow copy: don't close 
-											  // AcceptSocket, instead close 
-											  // ThreadInputs[Ind] when the
-											  // time comes.
-			ThreadHandles[Ind] = CreateThread(
-				NULL,
-				0,
-				(LPTHREAD_START_ROUTINE)ServiceThread,
-				&(ThreadInputs[Ind]),
-				0,
-				NULL
-			);
-		}
-		*/
 	}
 	// close ListenThread
 	DWORD wait_code;
 	BOOL ret_val;
+	DWORD exit_code;
+
 	wait_code = WaitForSingleObject(ListenThreadHandle, THREAD_TIMEOUT);	// wait for thread to finish running
 	if (WAIT_OBJECT_0 != wait_code)			// check for errors
 	{
-		printf("Error when waiting\n");
+		ret_val = TerminateThread(ListenThreadHandle, &exit_code);
+		if (FALSE == ret_val)
+		{
+			printf("Error when terminating thread: %d\n", GetLastError());
+		}
 	}
 	ret_val = CloseHandle(ListenThreadHandle);
 	if (FALSE == ret_val)
 	{
 		printf("Error when closing thread: %d\n", GetLastError());
 	}
-	printf("reached here\n");
-server_cleanup_3:
 
+server_cleanup_3:
 	CleanupWorkerThreads();
 
 server_cleanup_2:
@@ -205,53 +180,61 @@ server_cleanup_1:
 }
 
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
-/*
-static int FindFirstUnusedThreadSlot()
-{
-	int Ind;
 
-	for (Ind = 0; Ind < NUM_OF_WORKER_THREADS; Ind++)
-	{
-		if (ThreadHandles[Ind] == NULL)
-			break;
-		else
-		{
-			// poll to check if thread finished running:
-			DWORD Res = WaitForSingleObject(ThreadHandles[Ind], 0);
-
-			if (Res == WAIT_OBJECT_0) // this thread finished running
-			{
-				CloseHandle(ThreadHandles[Ind]);
-				ThreadHandles[Ind] = NULL;
-				break;
-			}
-		}
-	}
-
-	return Ind;
-}
-*/
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
 static void CleanupWorkerThreads()
 {
 	int Ind;
+	BOOL ret_val;
+	int exit_code;
 
+	if (SpareHandle != NULL) {
+		ret_val = CloseHandle(SpareHandle);
+		if (FALSE == ret_val)
+		{
+			printf("Error when closing thread: %d\n", GetLastError());
+		}
+	}
 	for (Ind = 0; Ind < NUM_OF_WORKER_THREADS; Ind++)
 	{
 		if (ThreadHandles[Ind] != NULL)
 		{
 			// poll to check if thread finished running:
-			DWORD Res = WaitForSingleObject(ThreadHandles[Ind], INFINITE);
+			DWORD Res = WaitForSingleObject(ThreadHandles[Ind], THREAD_TIMEOUT);
 
-			if (Res == WAIT_OBJECT_0)
-			{
-				closesocket(ThreadInputs[Ind]);	// TODO check errors
-				CloseHandle(ThreadHandles[Ind]);// TODO same
+			if (Res == WAIT_OBJECT_0) {
+				if (closesocket(ThreadInputs[Ind]) != FALSE) {	// TODO check errors
+					printf("Error when closing socket\n");
+				}
+				ret_val = CloseHandle(ThreadHandles[Ind]);
+				if (FALSE == ret_val)
+				{
+					printf("Error when closing thread: %d\n", GetLastError());
+				}
 				ThreadHandles[Ind] = NULL;
-				break;
+				continue;
 			}
-			else
+			else if (Res == WAIT_TIMEOUT) {
+				
+				ret_val = TerminateThread(ThreadHandles[Ind], &exit_code);
+				if (FALSE == ret_val)
+				{
+					printf("Error when terminating thread: %d\n", GetLastError());
+				}
+			
+				ret_val = CloseHandle(ThreadHandles[Ind]);
+				if (FALSE == ret_val)
+				{
+				printf("Error when closing thread: %d\n", GetLastError());
+				}
+				if (closesocket(ThreadInputs[Ind]) != FALSE) {	
+					printf("Error when closing socket\n");
+				}
+				ThreadHandles[Ind] = NULL;
+				continue;
+			}
+		else
 			{
 				printf("Waiting for thread failed. Ending program\n");
 				return;

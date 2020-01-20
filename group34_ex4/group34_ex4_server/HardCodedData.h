@@ -12,4 +12,33 @@
 
 #define ERR_ACCEPT_SOCKET -2
 
-#define THREAD_TIMEOUT 5000
+#define ERR_RECV_SOCKET -3
+
+#define ERR_SEND_SOCKET -4
+
+#define THREAD_TIMEOUT 1000
+
+#define NUM_PARAMETERS 4
+
+#define MAX_MOVE_LEN 9
+
+typedef enum { CLIENT_CPU, CLIENT_VERSUS, CLIENT_LEADERBOARD, CLIENT_DISCONNECT } client_decision;
+
+typedef enum { ROCK, SPOCK, PAPER, LIZARD, SCISSORS } possible_moves;
+
+typedef struct
+{
+	SOCKET *MainSocket;
+	HANDLE *ThreadHandles;
+	SOCKET *ThreadInputs;
+	HANDLE *SpareHandle;
+	BOOL *Done;
+} LISTEN_THREAD_params_t;
+
+typedef struct
+{
+	SOCKET *WorkerSocket;
+	BOOL *Done;
+	BOOL *is_full;
+	char *username;
+} CONNECTION_THREAD_params_t;

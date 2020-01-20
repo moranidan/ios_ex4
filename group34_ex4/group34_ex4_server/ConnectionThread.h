@@ -10,11 +10,15 @@
 #include <string.h>
 #include <winsock2.h>
 #include "HardCodedData.h"
+#include <time.h>
+#include <stdlib.h>
 #include "../Shared/SocketExampleShared.h"
 #include "../Shared/SocketSendRecvTools.h"
 
 
-DWORD ServiceThread(SOCKET *t_socket);
+
+
+DWORD ServiceThread(LPVOID lpParam);
 
 
 #endif // CONNECTION_THREAD_H
