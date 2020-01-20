@@ -90,6 +90,9 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -121,7 +124,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Shared\SocketSendRecvTools.c" />
-    <ClCompile Include="client_messages.c" />
+    <ClCompile Include="game_logic.c" />
     <ClCompile Include="group34_ex4_client.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
