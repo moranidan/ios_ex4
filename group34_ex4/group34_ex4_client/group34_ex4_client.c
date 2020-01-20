@@ -185,10 +185,6 @@ static DWORD SendDataThread(void)
 		if (release_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
 			goto ERR_WITH_MUTEX;
 		}
-
-		if (quit == 1) {
-			break;
-		}
 		
 		//lock mutex
 		if (lock_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
@@ -291,8 +287,9 @@ int check_arguments(int argc, int *return_code) {
 		if (return_code != NULL) {
 			*return_code = ERR_CODE_NOT_ENOUGH_ARGUMENTS;
 		}
+		return ERR_CODE_NOT_ENOUGH_ARGUMENTS;
 	}
-	return ERR_CODE_NOT_ENOUGH_ARGUMENTS;
+	return SUCCESS_CODE;
 }
 
 int create_and_check_mutex(
@@ -308,8 +305,9 @@ int create_and_check_mutex(
 		if (return_code != NULL) {
 			*return_code = ERR_CODE_MUTEX;
 		}
+		return ERR_CODE_MUTEX;
 	}
-	return ERR_CODE_MUTEX;
+	return SUCCESS_CODE;
 }
 
 int open_and_check_mutex(
@@ -325,8 +323,9 @@ int open_and_check_mutex(
 		if (return_code != NULL) {
 			*return_code = ERR_CODE_MUTEX;
 		}
+		return ERR_CODE_MUTEX;
 	}
-	return ERR_CODE_MUTEX;
+	return SUCCESS_CODE;
 }
 
 int lock_mutex(HANDLE *mutex_handle, int *return_code) {
