@@ -48,21 +48,23 @@ DWORD ServiceThread(LPVOID lpParam)
 	{
 		Done = Done || *(p_params->Done);
 		replay = TRUE;
-		if (main_manu(&p_params, &main_manu_decision) < 0) {
+		if (main_manu(p_params, &main_manu_decision) < 0) {
 			break;
 		}
 		if (main_manu_decision == CLIENT_CPU) {
 			while (replay == TRUE) {
-				if (cpu_game(&p_params, &replay) < 0) {
+				if (cpu_game(p_params, &replay) < 0) {
 					break;
 				}
 			}
 		}
 		else if (main_manu_decision == CLIENT_VERSUS) {
-			versus_game();
+			printf("Versus game\n");
+			//versus_game();
 		}
 		else if (main_manu_decision == CLIENT_LEADERBOARD) {
-			leaderboard();
+			printf("leaderboard\n");
+			//leaderboard();
 		}
 		else if (main_manu_decision == CLIENT_DISCONNECT) {
 			Done = TRUE;
@@ -244,8 +246,8 @@ int main_manu(CONNECTION_THREAD_params_t *p_params, int *main_manu_decision) {
 
 int cpu_game(CONNECTION_THREAD_params_t *p_params, BOOL *replay) {
 	char *AcceptedStr = NULL;
-	char *to_send[MAX_MESSAGE_TYPE_LENGTH];
-	int max_size = MAX_MESSAGE_TYPE_LENGTH;
+	char *to_send[140];
+	int max_size = 140;
 	char *message_type[MAX_MESSAGE_TYPE_LENGTH];
 	char *params[NUM_PARAMETERS];
 	int player_choice;
@@ -270,15 +272,19 @@ int cpu_game(CONNECTION_THREAD_params_t *p_params, BOOL *replay) {
 		player_choice = name_to_number(params[0]);
 	}
 	// find the winner and send results
-	char cpu_move[MAX_MOVE_LEN];
+	char *cpu_move[MAX_MOVE_LEN];
 	number_to_name(cpu_choice, cpu_move);
+	if (player_choice == cpu_choice) {
+		char *send_params[4] = { "SERVER", cpu_move, params[0], NULL };
+		create_string_to_send(to_send, "SERVER_GAME_RESULTS", &send_params, &max_size);
+	}
 	if (player_win(player_choice, cpu_choice) == TRUE) {
-		char *send_params[4] = { NULL,cpu_move, params[0], p_params->username };
-		create_string_to_send(to_send, "SERVER_GAME_RESULTS", NULL, &max_size);
+		char *send_params[4] = { "SERVER", cpu_move, params[0], p_params->username };
+		create_string_to_send(to_send, "SERVER_GAME_RESULTS", &send_params, &max_size);
 	}
 	else {
-		char *send_params[4] = { NULL, cpu_move, params[0], "Server" };
-		create_string_to_send(to_send, "SERVER_MAIN_MANU", NULL, &max_size);
+		char *send_params[4] = { "SERVER", cpu_move, params[0], "SERVER" };
+		create_string_to_send(to_send, "SERVER_GAME_RESULTS", &send_params, &max_size);
 
 	}
 	if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
@@ -324,22 +330,22 @@ int name_to_number(char *move_name) {
 
 void number_to_name(int num, char *move_name) {
 	if (num == 0) {
-		*move_name = "ROCK";
+		strcpy_s(move_name, MAX_MOVE_LEN, "ROCK");
 	}
 	else if (num == 1) {
-		*move_name = "SPOCK";
+		strcpy_s(move_name, MAX_MOVE_LEN, "SPOCK");
 	}
 	else if (num == 2) {
-		*move_name = "PAPER";
+		strcpy_s(move_name, MAX_MOVE_LEN, "PAPER");
 	}
 	else if (num == 3) {
-		*move_name = "LIZARD";
+		strcpy_s(move_name, MAX_MOVE_LEN, "LIZARD");
 	}
 	else if (num == 4) {
-		*move_name = "SCISSORS";
+		strcpy_s(move_name, MAX_MOVE_LEN, "SCISSORS");
 	}
 	else {
-		*move_name = "ERROR";
+		strcpy_s(move_name, MAX_MOVE_LEN, "ERROR");
 	}
 }
 
@@ -350,6 +356,7 @@ int check_if_replay(CONNECTION_THREAD_params_t *p_params, BOOL *replay) {
 	int max_size = MAX_MESSAGE_TYPE_LENGTH;
 	char *message_type[MAX_MESSAGE_TYPE_LENGTH];
 	char *params[NUM_PARAMETERS];
+
 
 	create_string_to_send(to_send, "SERVER_GAME_OVER_MANU", NULL, &max_size);
 	if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
