@@ -4,6 +4,7 @@
 
 #include "ConnectionThread.h"
 
+// is merged???
 
 //Service thread is the thread that opens for each successful client connection and "talks" to the client.
 DWORD ServiceThread(LPVOID lpParam)
