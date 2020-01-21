@@ -204,8 +204,10 @@ static void CleanupWorkerThreads()
 			DWORD Res = WaitForSingleObject(ThreadHandles[Ind], THREAD_TIMEOUT);
 
 			if (Res == WAIT_OBJECT_0) {
-				if (closesocket(ThreadInputs[Ind]) != FALSE) {	// TODO check errors
-					printf("Error when closing socket\n");
+				if (ThreadInputs[Ind] != NULL) {
+					if (closesocket(ThreadInputs[Ind]) != FALSE) {	// TODO check errors
+						printf("Error when closing socket\n");
+					}
 				}
 				ret_val = CloseHandle(ThreadHandles[Ind]);
 				if (FALSE == ret_val)
