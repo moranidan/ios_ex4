@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include "../Shared/SocketExampleShared.h"
 #include "../Shared/SocketSendRecvTools.h"
+#include <WS2tcpip.h>
 
 
 
@@ -22,7 +23,7 @@ DWORD ServiceThread(LPVOID lpParam);
 int ReceiveAndCheck(char **AcceptedStr, SOCKET *socket);
 int SendAndCheck(char *to_send, SOCKET *socket);
 int approve_client(CONNECTION_THREAD_params_t *p_params);
-int main_manu(CONNECTION_THREAD_params_t *p_params, int *main_manu_decision);
+int main_menu(CONNECTION_THREAD_params_t *p_params, int *main_menu_decision);
 int cpu_game(CONNECTION_THREAD_params_t *p_params, BOOL *replay);
 BOOL player_win(int player_choice, int cpu_choice);
 int name_to_number(char *move_name);
