@@ -5,6 +5,7 @@
 #include "ConnectionThread.h"
 #pragma comment(lib, "Ws2_32.lib")
 
+// is merged???
 
 //Service thread is the thread that opens for each successful client connection and "talks" to the client.
 DWORD ServiceThread(LPVOID lpParam)
