@@ -390,7 +390,7 @@ int check_if_replay(CONNECTION_THREAD_params_t *p_params, BOOL *replay) {
 	return SUCCESS_CODE;
 }
 
-
+/*
 int versus_game(CONNECTION_THREAD_params_t *p_params) {
 	printf("versus");
 
@@ -421,6 +421,6 @@ int versus_game(CONNECTION_THREAD_params_t *p_params) {
 		}
 	}
 	open_file(&created, fd);
+	
 
-
-}
+}*/
