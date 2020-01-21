@@ -3,6 +3,8 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include "ConnectionThread.h"
+#pragma comment(lib, "Ws2_32.lib")
+
 
 // is merged???
 
@@ -42,32 +44,33 @@ DWORD ServiceThread(LPVOID lpParam)
 		return 1;
 	}*/
 	
-	int main_manu_decision;
+	int main_menu_decision;
 	BOOL replay;
 
+	Done = Done || *(p_params->Done);
 	while (!Done)
 	{
 		Done = Done || *(p_params->Done);
 		replay = TRUE;
-		if (main_manu(p_params, &main_manu_decision) < 0) {
+		if (main_menu(p_params, &main_menu_decision) < 0) {
 			break;
 		}
-		if (main_manu_decision == CLIENT_CPU) {
+		if (main_menu_decision == CLIENT_CPU) {
 			while (replay == TRUE) {
 				if (cpu_game(p_params, &replay) < 0) {
 					break;
 				}
 			}
 		}
-		else if (main_manu_decision == CLIENT_VERSUS) {
+		else if (main_menu_decision == CLIENT_VERSUS) {
 			printf("Versus game\n");
 			//versus_game();
 		}
-		else if (main_manu_decision == CLIENT_LEADERBOARD) {
+		else if (main_menu_decision == CLIENT_LEADERBOARD) {
 			printf("leaderboard\n");
 			//leaderboard();
 		}
-		else if (main_manu_decision == CLIENT_DISCONNECT) {
+		else if (main_menu_decision == CLIENT_DISCONNECT) {
 			Done = TRUE;
 		}
 		
@@ -128,12 +131,15 @@ DWORD ServiceThread(LPVOID lpParam)
 EXIT:
 	printf("Conversation ended.\n");
 	closesocket(*t_socket);	// TODO check
+	*(p_params->WorkerSocket) = NULL;
 	return 0;
 }
 
 
 int ReceiveAndCheck(char **AcceptedStr, SOCKET *socket) {
 	TransferResult_t RecvRes;
+	//if (setsockopt(*socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
+	//	printf("setsockopt failed\n");
 	RecvRes = ReceiveString(AcceptedStr, *socket);
 	printf("recvncheck: %s\n", *AcceptedStr);
 	if (RecvRes == TRNS_FAILED)
@@ -174,6 +180,9 @@ int approve_client(CONNECTION_THREAD_params_t *p_params) {
 	char *params[NUM_PARAMETERS];
 	char *to_send[50];
 	int max_size = 50;
+	//set timeout
+	printf("receving approve\n");
+	int timeout = 15000;
 
 	if (ReceiveAndCheck(&AcceptedStr, p_params->WorkerSocket) == ERR_RECV_SOCKET) {
 		return ERR_RECV_SOCKET;
@@ -182,14 +191,14 @@ int approve_client(CONNECTION_THREAD_params_t *p_params) {
 	parse_recv_string(AcceptedStr, message_type, &params);
 	printf("message type: %s, params[0]: %s\n", message_type, params[0]);
 	if (STRINGS_ARE_EQUAL(message_type, "CLIENT_REQUEST")) {
-		if (p_params->is_full == TRUE) {
+		if (*(p_params->is_full) == TRUE) {
 			// 2 client already connected, deny request
 			char *send_params[4] = { "Too many clients", NULL, NULL, NULL };
 			create_string_to_send(to_send, "SERVER_DENIED", &send_params, &max_size);
 			if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
 				return ERR_SEND_SOCKET;
 			}
-			p_params->Done = TRUE;
+			*(p_params->Done) = TRUE;
 		}
 		else {
 			// approve request
@@ -208,14 +217,14 @@ int approve_client(CONNECTION_THREAD_params_t *p_params) {
 }
 
 
-int main_manu(CONNECTION_THREAD_params_t *p_params, int *main_manu_decision) {
+int main_menu(CONNECTION_THREAD_params_t *p_params, int *main_menu_decision) {
 	char *AcceptedStr = NULL;
 	char *to_send[MAX_MESSAGE_TYPE_LENGTH];
 	int max_size = MAX_MESSAGE_TYPE_LENGTH;
 	char *message_type[MAX_MESSAGE_TYPE_LENGTH];
 	char *params[NUM_PARAMETERS];
 
-	// send main manu
+	// send main menu
 	create_string_to_send(to_send, "SERVER_MAIN_MENU", NULL, &max_size);
 	if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
 		return ERR_SEND_SOCKET;
@@ -226,16 +235,16 @@ int main_manu(CONNECTION_THREAD_params_t *p_params, int *main_manu_decision) {
 	}
 	parse_recv_string(AcceptedStr, message_type, &params);
 	if (STRINGS_ARE_EQUAL(AcceptedStr, "CLIENT_CPU")) {
-		*main_manu_decision = CLIENT_CPU;
+		*main_menu_decision = CLIENT_CPU;
 	}
 	else if (STRINGS_ARE_EQUAL(AcceptedStr, "CLIENT_VERSUS")) {
-		*main_manu_decision = CLIENT_VERSUS;
+		*main_menu_decision = CLIENT_VERSUS;
 	}
 	else if (STRINGS_ARE_EQUAL(AcceptedStr, "CLIENT_LEADERBOARD")) {
-		*main_manu_decision = CLIENT_LEADERBOARD;
+		*main_menu_decision = CLIENT_LEADERBOARD;
 	}
 	else if (STRINGS_ARE_EQUAL(AcceptedStr, "CLIEN_DISCONNECT")) {
-		*main_manu_decision = CLIENT_DISCONNECT;
+		*main_menu_decision = CLIENT_DISCONNECT;
 	}
 	else {
 		printf("Unknown protocol message\n");
@@ -291,7 +300,7 @@ int cpu_game(CONNECTION_THREAD_params_t *p_params, BOOL *replay) {
 	if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
 		return ERR_SEND_SOCKET;
 	}
-	return check_if_replay(&p_params, &replay);
+	return check_if_replay(p_params, replay);
 }
 
 
@@ -382,3 +391,36 @@ int check_if_replay(CONNECTION_THREAD_params_t *p_params, BOOL *replay) {
 }
 
 
+int versus_game(CONNECTION_THREAD_params_t *p_params) {
+	printf("versus");
+
+	char *AcceptedStr = NULL;
+	char *to_send[MAX_MESSAGE_TYPE_LENGTH];
+	int max_size = MAX_MESSAGE_TYPE_LENGTH;
+	char *message_type[MAX_MESSAGE_TYPE_LENGTH];
+	char *params[NUM_PARAMETERS];
+	BOOL created = FALSE;
+	FILE *fd = NULL;
+	// open/create mutex
+	//open_mutex();
+	// lock file mutex
+	if (file_exists(fd) == FALSE) {
+		// player2
+		// release file mutex
+		create_string_to_send(to_send, "SERVER_INVITE", NULL, &max_size);
+		if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
+			return ERR_SEND_SOCKET;
+		}
+	}
+	else {
+		// player1
+		create_file();
+		create_string_to_send(to_send, "SERVER_INVITE", NULL, &max_size);
+		if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
+			return ERR_SEND_SOCKET;
+		}
+	}
+	open_file(&created, fd);
+
+
+}
