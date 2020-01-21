@@ -34,10 +34,10 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 		return ERR_CODE_MUTEX;
 	}
 
-	if (message_type == "SERVER_DENIED") {  // need to move
+	if (strcmp(message_type, "SERVER_DENIED") == 0) {  // need to move
 		try_to_connect(SERVER_DENIED_MENU_BEF, SERVER_DENIED_MENU_AFT);
 	}
-	if (message_type == "SERVER_APPROVED" || "SERVER_MAIN_MENU" || "SERVER_NO_OPPONENTS") {
+	if (strcmp(message_type, "SERVER_MAIN_MENU") == 0) {
 
 		//lock mutex
 		if (lock_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
@@ -52,9 +52,9 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 
 		printf("Choose what to do next:\n1. Play against another client\n2. Play against the server\n3. View the leaderbord\n4. Quit\n");
 	}
-	if (message_type == "SERVER_INVITE") {
+	if (strcmp(message_type, "SERVER_INVITE") == 0 ) {
 	}
-	if (message_type == "SERVER_LEADERBOARD") {
+	if (strcmp(message_type, "SERVER_LEADERBOARD") == 0) {
 		parse_and_print_leaderboard(params[0]);
 
 		//lock mutex
@@ -70,7 +70,7 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 
 		printf("Choose what to do next:\n1. Refresh leaderboard\n2. Return to the main menu\n");
 	}
-	if (message_type == "SERVER_PLAYER_MOVE_REQUEST") {
+	if (strcmp(message_type, "SERVER_PLAYER_MOVE_REQUEST") == 0) {
 		//lock mutex
 		if (lock_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
 			goto ERR_WITH_MUTEX;
@@ -84,16 +84,16 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 
 		printf("Choose a move from the list: Rock, Paper, Scissors, Lizard or Spock:\n");
 	}
-	if (message_type == "SERVER_GAME_RESULTS") {
+	if (strcmp(message_type, "SERVER_GAME_RESULTS") == 0) {
 		printf("You played:%s\n%s played:%s\n", params[2], params[0], params[1]);
 		if (params[3] != NULL) {
 			printf("%s won!\n", params[3]);
 		}
 	}
-	if (message_type == "SERVER_GAME_OVER_MENU") {
+	if (strcmp(message_type, "SERVER_GAME_OVER_MENU") == 0) {
 		printf("Choose what to do next:\n1. Play again\n2. Return to the main menu\n");
 	}
-	if (message_type == "SERVER_OPPONENT_QUIT") {
+	if (strcmp(message_type, "SERVER_OPPONENT_QUIT") == 0) {
 		printf("%s has left the game!\n", params[0]);
 	}
 
@@ -106,41 +106,44 @@ ERR_WITH_MUTEX:
 
 
 void game_logic_in_send_thread(char *SendStr, char *message_between_threads, int *quit) {
-	if (message_between_threads == "SERVER_MAIN_MENU") {
+	int send_str_len = MAX_SENDSTR_FOR_CLIENT;
+	if (strcmp(message_between_threads, "SERVER_MAIN_MENU") == 0) {
 		char *params[] = { NULL, NULL, NULL, NULL };
 		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
 		if (*SendStr == '1') {
-			create_string_to_send(SendStr, "CLIENT_VERSUS", &params, MAX_SENDSTR_FOR_CLIENT);
+			create_string_to_send(SendStr, "CLIENT_VERSUS", &params, &send_str_len);
 			strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, SENT_CLIENT_VERSUS);
 		}
 		if (*SendStr == '2') {
-			create_string_to_send(SendStr, "CLIENT_CPU", &params, MAX_SENDSTR_FOR_CLIENT);
+			create_string_to_send(SendStr, "CLIENT_CPU", &params, &send_str_len);
 		}
 		if (*SendStr == '3') {
-			create_string_to_send(SendStr, "CLIENT_LEADERBOARD", &params, MAX_SENDSTR_FOR_CLIENT);
+			create_string_to_send(SendStr, "CLIENT_LEADERBOARD", &params, &send_str_len);
 		}
 		if (*SendStr == '4') {
-			create_string_to_send(SendStr, "CLIENT_DISCONNECT", &params, MAX_SENDSTR_FOR_CLIENT);
+			create_string_to_send(SendStr, "CLIENT_DISCONNECT", &params, &send_str_len);
 			strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, USER_ASKED_TO_QUIT);
 			*quit = 1;
 		}
 	}
-	else if (message_between_threads == "SERVER_LEADERBOARD") {
+	else if (strcmp(message_between_threads, "SERVER_LEADERBOARD") == 0) {
 		char *params[] = { NULL, NULL, NULL, NULL };
 		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
 		if (*SendStr == '1') {
-			create_string_to_send(SendStr, "CLIENT_REFRESH", &params, MAX_SENDSTR_FOR_CLIENT);
+			create_string_to_send(SendStr, "CLIENT_REFRESH", &params, &send_str_len);
 			//wait to server leaderboard message
 		}
 		if (*SendStr == '2') {
-			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", &params, MAX_SENDSTR_FOR_CLIENT);
+			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", &params, &send_str_len);
 			//wait to server main menu message
 		}
 	}
-	else if (message_between_threads == "SERVER_PLAYER_MOVE_REQUEST") {
-		char *params[] = { NULL, NULL, NULL, NULL };
-		params[0] = SendStr;
+	else if (strcmp(message_between_threads, "SERVER_PLAYER_MOVE_REQUEST") == 0) {
+		char *move[MAX_USER_LEN_INPUT];
+		move[0] = '\0';
+		strcpy_s(move, MAX_SENDSTR_FOR_CLIENT, SendStr);
+		char *params[4] = { move, NULL, NULL, NULL };
 		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
-		create_string_to_send(SendStr, "CLIENT_PLAYER_MOVE", &params, MAX_SENDSTR_FOR_CLIENT);
+		create_string_to_send(SendStr, "CLIENT_PLAYER_MOVE", &params, &send_str_len);
 	}
 }

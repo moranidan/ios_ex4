@@ -17,7 +17,7 @@
 
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
-typedef enum { TRNS_FAILED, TRNS_DISCONNECTED, TRNS_SUCCEEDED } TransferResult_t;
+typedef enum { TRNS_FAILED, TRNS_DISCONNECTED, TRNS_SUCCEEDED, TRNS_TIMEOUT} TransferResult_t;
 
 #define MAX_MESSAGE_TYPE_LENGTH  28
 

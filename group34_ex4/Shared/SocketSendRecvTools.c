@@ -81,8 +81,15 @@ TransferResult_t ReceiveBuffer( char* OutputBuffer, int BytesToReceive, SOCKET s
 		BytesJustTransferred = recv(sd, CurPlacePtr, RemainingBytesToReceive, 0);
 		if ( BytesJustTransferred == SOCKET_ERROR ) 
 		{
-			printf("recv() failed, error %d\n", WSAGetLastError() );
-			return TRNS_FAILED;
+			int error_type = WSAGetLastError();
+			if (error_type == WSAETIMEDOUT) {
+				printf("recv() failed, error %d\n", WSAGetLastError());
+				return	TRNS_TIMEOUT;
+			}
+			else {
+				printf("recv() failed, error %d\n", WSAGetLastError());
+				return TRNS_FAILED;
+			}
 		}		
 		else if ( BytesJustTransferred == 0 )
 			return TRNS_DISCONNECTED; // recv() returns zero if connection was gracefully disconnected.
@@ -169,7 +176,8 @@ void create_string_to_send(char *send_str, char *message_type, char *params[], i
 
 void parse_recv_string(char *recv_string, char *message_type, char *params[]) {
 	if (strchr(recv_string, ':') == NULL) {
-		message_type = strtok(recv_string, "\n");
+		char *inner_msg_type = strtok(recv_string, "\n");
+		strcpy_s(message_type, 30, inner_msg_type);
 		return;
 	}
 	char *inner_msg_type = strtok(recv_string, ":");

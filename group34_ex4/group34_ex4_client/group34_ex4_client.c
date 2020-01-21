@@ -48,7 +48,6 @@ int try_to_connect(char *menu_type_bef, char *menu_type_aft) {
 		if (err == SOCKET_ERROR) {               //connect to server
 			printf("%s %s:%d%s.\nChoose what to do next:\n1. Try to reconnect\n2. Exit\n",menu_type_bef, global_server_ip, global_server_port, menu_type_aft);
 			gets_s(user_input, sizeof(user_input)); //Reading a string from the keyboard
-			Sleep(15);
 
 		}
 		else {
@@ -87,24 +86,27 @@ static DWORD RecvDataThread(void)
 	if (open_and_check_mutex(&message_between_threads_mutex_handle, SYNCHRONIZE, FALSE, MUTEX_MESSAGE_BETWEEN_THREADS_NAME, NULL) != SUCCESS_CODE) {
 		return ERR_CODE_MUTEX;
 	}
-
+	char message_type[MAX_MESSAGE_TYPE_LENGTH] = "";
+	int i = 0;
 	while (1)
 	{
-		char message_type[MAX_MESSAGE_TYPE_LENGTH];
-		message_type[0] = '\0';
+		printf("in recv for the %d time\n", i);
+		i ++ ; 
+		strcpy_s(message_type, MAX_MESSAGE_TYPE_LENGTH, "");
+		//char message_type[MAX_MESSAGE_TYPE_LENGTH] = "";
+		//message_type[0] = '\0';
 		char *params[] = { "","","","" };
 		char *AcceptedStr = NULL;
 		int time_val = 15000;
-
 		//lock mutex
 		if (lock_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
 			goto ERR_WITH_MUTEX;
 		}
 		//critical zone
-		if (message_between_threads == USER_ASKED_TO_QUIT) {
+		if (strcmp(message_between_threads, USER_ASKED_TO_QUIT) == 0) {
 			quit = 1;
 		}
-		else if (message_between_threads == SENT_CLIENT_VERSUS) {
+		else if (strcmp(message_between_threads, SENT_CLIENT_VERSUS) == 0) {
 			time_val = 30000;
 		}
 		//free mutex
@@ -116,39 +118,43 @@ static DWORD RecvDataThread(void)
 			break;
 		}
 
-		setsockopt(server_socket, SOL_SOCKET, SO_RCVTIMEO, &time_val, sizeof(time_val));
-
+		setsockopt(server_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &time_val, sizeof(time_val));
 		RecvRes = ReceiveString(&AcceptedStr, server_socket);
-
 		if (RecvRes == TRNS_FAILED) {
 			printf("Socket error while trying to write data to socket\n");
+			close_handle(&message_between_threads_mutex_handle);
+			free(AcceptedStr);
 			return ERR_CODE_SOCKET;
 		}
 		else if (RecvRes == TRNS_DISCONNECTED) {
 			if (try_to_connect(CONNECTION_BREAK_MENU_BEF, CONNECTION_BREAK_MENU_AFT) == SUCCESS_CODE) {
+				free(AcceptedStr);
 				continue;
 			}
 			else {
+				close_handle(&message_between_threads_mutex_handle);
+				free(AcceptedStr);
 				return ERR_CODE_CONNECTION;
 			}
 		}
-		else if (RecvRes == "TRNS_TIMEOUT") {
+		else if (RecvRes == TRNS_TIMEOUT) {
 			if (try_to_connect(CONNECTION_BREAK_MENU_BEF, CONNECTION_BREAK_MENU_AFT) == SUCCESS_CODE) {
+				free(AcceptedStr);
 				continue;
 			}
 			else {
+				close_handle(&message_between_threads_mutex_handle);
+				free(AcceptedStr);
 				return ERR_CODE_TIMEOUT;
 			}
 		}
 		else {
-			parse_recv_string(*AcceptedStr, message_type, *params);
+			parse_recv_string(AcceptedStr, message_type, &params);
 			printf("%s\n", AcceptedStr);
 			game_logic_in_recive_thread(message_type, *params, &message_between_threads);
 		}
-
 		free(AcceptedStr);
 	}
-
 	close_handle(&message_between_threads_mutex_handle);
 	return SUCCESS_CODE;
 ERR_WITH_MUTEX:
@@ -167,18 +173,16 @@ static DWORD SendDataThread(void)
 	if (open_and_check_mutex(&message_between_threads_mutex_handle, SYNCHRONIZE, FALSE, MUTEX_MESSAGE_BETWEEN_THREADS_NAME, NULL) != SUCCESS_CODE) {
 		return ERR_CODE_MUTEX;
 	}
-
 	while (1)
 	{
 		gets_s(SendStr, sizeof(SendStr)); //Reading a string from the keyboard
 		strupr(SendStr);
-
 		//lock mutex
 		if (lock_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
 			goto ERR_WITH_MUTEX;
 		}
 		//critical zone
-		if (message_between_threads == USER_ASKED_TO_QUIT) {
+		if (strcmp(message_between_threads, USER_ASKED_TO_QUIT) == 0) {
 			quit = 1;
 		}
 		//free mutex
@@ -198,7 +202,6 @@ static DWORD SendDataThread(void)
 		}
 
 		SendRes = SendString(SendStr, server_socket);
-
 		if (quit == 1) {
 			break;
 		}
@@ -220,9 +223,9 @@ ERR_WITH_MUTEX:
 
 int connecting_to_server(char *server_ip, int server_port, void *p_server_socket, char *username) {
 
-	SOCKADDR_IN clientService;
 	HANDLE hThread[2];
 	WSADATA wsaData;
+	TransferResult_t SendRes;
 	char user_input[MAX_USER_LEN_INPUT];
 	user_input[0] = '1';
 
@@ -252,10 +255,14 @@ int connecting_to_server(char *server_ip, int server_port, void *p_server_socket
 		WSACleanup();
 		return ERR_CODE_SOCKET;
 	}
-	char *sendstr[MAX_MESSAGE_TYPE_LENGTH + MAX_USER_NAME_INPUT];
-	sendstr[0] = '\0';
+	char sendstr[MAX_MESSAGE_TYPE_LENGTH + MAX_USER_NAME_INPUT] = "";
 	sprintf_s(sendstr, MAX_MESSAGE_TYPE_LENGTH + MAX_USER_NAME_INPUT, "CLIENT_REQUEST:%s\n", username);
-	SendString(sendstr, server_socket);
+	SendRes = SendString(sendstr, server_socket);
+	if (SendRes == TRNS_FAILED)
+	{
+		printf("Socket error while trying to write data to socket\n");
+		return ERR_CODE_SOCKET;
+	}
 	hThread[0] = CreateThread(
 		NULL,
 		0,

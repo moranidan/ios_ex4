@@ -215,7 +215,7 @@ int main_manu(CONNECTION_THREAD_params_t *p_params, int *main_manu_decision) {
 	char *params[NUM_PARAMETERS];
 
 	// send main manu
-	create_string_to_send(to_send, "SERVER_MAIN_MANU", NULL, &max_size);
+	create_string_to_send(to_send, "SERVER_MAIN_MENU", NULL, &max_size);
 	if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
 		return ERR_SEND_SOCKET;
 	}
@@ -358,7 +358,7 @@ int check_if_replay(CONNECTION_THREAD_params_t *p_params, BOOL *replay) {
 	char *params[NUM_PARAMETERS];
 
 
-	create_string_to_send(to_send, "SERVER_GAME_OVER_MANU", NULL, &max_size);
+	create_string_to_send(to_send, "SERVER_GAME_OVER_MENU", NULL, &max_size);
 	if (SendAndCheck(to_send, p_params->WorkerSocket) == ERR_SEND_SOCKET) {
 		return ERR_SEND_SOCKET;
 	}
@@ -370,7 +370,7 @@ int check_if_replay(CONNECTION_THREAD_params_t *p_params, BOOL *replay) {
 	if (STRINGS_ARE_EQUAL(AcceptedStr, "CLIENT_REPLAY")) {
 		*replay = TRUE;
 	}
-	else if (STRINGS_ARE_EQUAL(AcceptedStr, "CLIENT_MAIN_MANU")) {
+	else if (STRINGS_ARE_EQUAL(AcceptedStr, "CLIENT_MAIN_MENU")) {
 		*replay = FALSE;
 	}
 	else {

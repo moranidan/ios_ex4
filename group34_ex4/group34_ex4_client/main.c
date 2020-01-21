@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 	if (return_code != SUCCESS_CODE) {
 		return return_code;
 	}
-
+	printf("ERR CODE RETUREND TO MAIN %d\n", return_code);
 
 	// close mutex handle and socket
 	close_handle(&message_between_threads_mutex_handle);
