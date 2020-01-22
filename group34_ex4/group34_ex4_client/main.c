@@ -54,19 +54,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	return_code = connecting_to_server(server_ip, server_port, &p_server_socket,username);
-	if (return_code != SUCCESS_CODE) {
-		return return_code;
-	}
-	printf("ERR CODE RETUREND TO MAIN %d\n", return_code);
 
 	// close mutex handle and socket
 	close_handle(&message_between_threads_mutex_handle);
-	int err = closesocket(*p_server_socket);
-	if (err == SOCKET_ERROR)
-	{
-		printf("recv() failed, error %d\n", WSAGetLastError());
-		return ERR_CODE_SOCKET;
-	}
 SKIP:
 	return return_code;
 }

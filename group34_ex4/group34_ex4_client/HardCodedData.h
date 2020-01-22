@@ -14,7 +14,7 @@
 #define MAX_MESSAGE_TYPE_LENGTH  30
 #define MAX_IP_STRING_LEN 16
 #define MAX_USER_LEN_INPUT 10
-#define MAX_SENDSTR_FOR_CLIENT 50
+#define MAX_SENDSTR_FOR_CLIENT 60
 static LPCTSTR MUTEX_MESSAGE_BETWEEN_THREADS_NAME = _T("group34_ex4_client_message_between_threads_mutex");  //create mutex for the message_between_threads varibel
 //typedef enum { CLIENT_REQUEST, CLIENT_MAIN_MENU, CLIENT_CPU, CLIENT_VERSUS, CLIENT_LEADERBOARD, CLIENT_PLAYER_MOVE,CLIENT_REPLAY, CLIENT_REFRESH, CLIENT_DISCONNECT };
 //typedef enum { SERVER_MAIN_MENU, SERVER_APPROVED, SERVER_DENIED, SERVER_INVITE, SERVER_PLAYER_MOVE_REQUEST, SERVER_GAME_RESULTS, SERVER_GAME_OVER_MENU, SERVER_OPPONENT_QUIT, SERVER_NO_OPPONENTS, SERVER_LEADERBOARD, SERVER_LEADERBORAD_MENU };
@@ -24,9 +24,9 @@ static LPCTSTR MUTEX_MESSAGE_BETWEEN_THREADS_NAME = _T("group34_ex4_client_messa
 #define FAILED_CONNECTION_MENU_BEF "Failed connecting to server on"
 #define FAILED_CONNECTION_MENU_AFT ""
 #define CONNECTION_BREAK_MENU_BEF "Connection to server on"
-#define CONNECTION_BREAK_MENU_AFT " has been lost."
+#define CONNECTION_BREAK_MENU_AFT " has been lost"
 #define SERVER_DENIED_MENU_BEF "Server on"
-#define SERVER_DENIED_MENU_AFT " denied the connection request."
+#define SERVER_DENIED_MENU_AFT " denied the connection request"
 /*
 #define MAX_LINE_LENGTH 52    //max lenght of line in names and room file
 #define LEN_FILE_NAME_RESIDENTS_NAMES 11   // the len of "/names.txt"
@@ -52,5 +52,6 @@ static const int ERR_CODE_CREAT_THEARD = -3;
 static const int ERR_CODE_CLOSE_THREAD = -4;
 static const int ERR_CODE_MUTEX = -1;
 static const int ERR_CODE_CONNECTION = -10;
-
+static const int ERR_CODE_WSACLEANUP = 11;
+static const int ERR_GET_EXITCODE = -12;
 

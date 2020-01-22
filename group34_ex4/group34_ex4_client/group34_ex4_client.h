@@ -20,6 +20,14 @@ Output: int, success code if the connection sucess, error code else
 int try_to_connect(char *menu_type_bef, char *menu_type_aft);
 
 /*
+This function tries to connect to the server as long as the user asked her too after the send and recv threads opened
+Input:  char *menu_type_bef - the string(before the ip and port number) that explained why the connection failed
+		char *menu_type_aft - the string(before the ip and port number) that explained why the connection failed
+Output: int, success code if the connection sucess, error code else
+*/
+int try_to_connect_again(char *menu_type_bef, char *menu_type_aft);
+
+/*
 This function connect to the server and open the recive and send threads.
 Input:  char *server_ip - the string contains the ip addres
 		int server_port - the number of the port

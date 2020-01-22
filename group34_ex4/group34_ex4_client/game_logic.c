@@ -35,7 +35,13 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 	}
 
 	if (strcmp(message_type, "SERVER_DENIED") == 0) {  // need to move
-		try_to_connect(SERVER_DENIED_MENU_BEF, SERVER_DENIED_MENU_AFT);
+		int err = SUCCESS_CODE;
+		err = try_to_connect_again(SERVER_DENIED_MENU_BEF, SERVER_DENIED_MENU_AFT);
+		while (err == ERR_CODE_CONNECTION) {
+			err = try_to_connect_again(SERVER_DENIED_MENU_BEF, SERVER_DENIED_MENU_AFT);
+		}
+		close_handle(&message_between_threads_mutex_handle);
+		return err;
 	}
 	if (strcmp(message_type, "SERVER_MAIN_MENU") == 0) {
 
@@ -91,6 +97,7 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 		}
 	}
 	if (strcmp(message_type, "SERVER_GAME_OVER_MENU") == 0) {
+		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, "SERVER_GAME_OVER_MENU");
 		printf("Choose what to do next:\n1. Play again\n2. Return to the main menu\n");
 	}
 	if (strcmp(message_type, "SERVER_OPPONENT_QUIT") == 0) {
@@ -136,6 +143,25 @@ void game_logic_in_send_thread(char *SendStr, char *message_between_threads, int
 		if (*SendStr == '2') {
 			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", &params, &send_str_len);
 			//wait to server main menu message
+		}
+	}
+	else if (strcmp(message_between_threads, "SERVER_GAME_OVER_MENU") == 0) {
+		char *params[] = { NULL, NULL, NULL, NULL };
+		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
+		if (*SendStr == '1') {
+			create_string_to_send(SendStr, "CLIENT_REPLAY", &params, &send_str_len);
+		}
+		if (*SendStr == '2') {
+			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", &params, &send_str_len);
+		}
+	}
+	else if (strcmp(message_between_threads, "TRY_TO_CONNECT") == 0) {
+		if (*SendStr == '1') {
+			strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, "1");
+		}
+		if (*SendStr == '2') {
+			strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, "2");
+			*quit = 1;
 		}
 	}
 	else if (strcmp(message_between_threads, "SERVER_PLAYER_MOVE_REQUEST") == 0) {
