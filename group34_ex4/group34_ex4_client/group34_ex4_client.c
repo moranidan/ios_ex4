@@ -124,7 +124,6 @@ CLOSE_AND_BREAK1:
 static DWORD RecvDataThread(void)
 {
 	TransferResult_t RecvRes;
-	//int quit = 0;
 	// open mutex
 	HANDLE message_between_threads_mutex_handle = NULL;
 	if (open_and_check_mutex(&message_between_threads_mutex_handle, SYNCHRONIZE, FALSE, MUTEX_MESSAGE_BETWEEN_THREADS_NAME, NULL) != SUCCESS_CODE) {
@@ -134,8 +133,6 @@ static DWORD RecvDataThread(void)
 	while (1)
 	{
 		strcpy_s(message_type, MAX_MESSAGE_TYPE_LENGTH, "");
-		//char message_type[MAX_MESSAGE_TYPE_LENGTH] = "";
-		//message_type[0] = '\0';
 		char *params[] = { "","","","" };
 		char *AcceptedStr = NULL;
 		int time_val = 15000;
@@ -144,9 +141,6 @@ static DWORD RecvDataThread(void)
 			goto ERR_WITH_MUTEX;
 		}
 		//critical zone
-		//if (strcmp(message_between_threads, USER_ASKED_TO_QUIT) == 0) {
-		//	quit = 1;
-		//}
 		if (strcmp(message_between_threads, SENT_CLIENT_VERSUS) == 0) {
 			time_val = 30000;
 		}
@@ -154,10 +148,6 @@ static DWORD RecvDataThread(void)
 		if (release_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
 			goto ERR_WITH_MUTEX;
 		}
-
-		/*if (quit == 1) {
-			break;
-		}*/
 
 		if (setsockopt(server_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&time_val, sizeof(time_val)) != 0 ) {
 			printf("setsockopt failed\n");
@@ -220,11 +210,6 @@ static DWORD SendDataThread(void)
 {
 	char *SendStr[MAX_SENDSTR_FOR_CLIENT];
 	SendStr[0] = '\0';
-	//SendStr= (char *) malloc(MAX_SENDSTR_FOR_CLIENT*sizeof(char));
-	//if (SendStr == NULL) {			// check if memory allocation was successful
-		//printf("Error when allocating memory");
-		//return ERR_CODE_ALLOCCING_MEMORY;
-	//}
 	int quit = 0;
 	TransferResult_t SendRes;
 	// open mutex
@@ -272,7 +257,7 @@ static DWORD SendDataThread(void)
 			break;
 		}
 	}
-	//close everything -send and recive threads 
+	//close everything - send and recive threads 
 	close_handle(&message_between_threads_mutex_handle);
 	return SUCCESS_CODE;
 ERR_WITH_MUTEX:

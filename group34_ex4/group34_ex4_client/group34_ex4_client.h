@@ -38,6 +38,32 @@ Output: int, success code if the connection sucess, error code else
 int connecting_to_server(char *server_ip, int server_port, void *p_server_socket, char *username);
 
 /*
+This function print the leaderboard according to the instractions.
+Input:  char *file_text - a string contains all the data inside the leaderboard file in csv format
+Output: void
+*/
+void parse_and_print_leaderboard(char *file_text);
+
+/*
+This function does the game logic in the recive thread.
+Input:  char *message_type - a string contains the type of message we get from the server
+		char *params[] - the list of params we get from the server
+		char *message_between_threads - a string that use for connection between the threads (its protected by a mutex)
+Output: int, success code if mutex locked successfully, error code else
+*/
+int game_logic_in_recive_thread(char *message_type, char *params[], char *message_between_threads);
+
+/*
+This function does the game logic in the recive thread.
+Input:  char *SendStr - a string contains the string we want to send to the server
+		char *message_between_threads - a string that use for connection between the threads (its protected by a mutex)
+		int *quit - a varibel that if equal 1 said that the user want to quit.
+Output: void
+*/
+void game_logic_in_send_thread(char *SendStr, char *message_between_threads, int *quit);
+
+
+/*
 This function checks if enough arguments were given.
 Input:  int argc - number of arguments
 		int *return_code - pointer to the return code, to be updated in case of an error
@@ -100,28 +126,3 @@ Input:  HANDLE *handle - pointer to the handle to be closed
 Output: void
 */
 void close_handle(HANDLE *handle);
-
-/*
-This function print the leaderboard according to the instractions.
-Input:  char *file_text - a string contains all the data inside the leaderboard file in csv format
-Output: void
-*/
-void parse_and_print_leaderboard(char *file_text);
-
-/*
-This function does the game logic in the recive thread.
-Input:  char *message_type - a string contains the type of message we get from the server
-		char *params[] - the list of params we get from the server
-		char *message_between_threads - a string that use for connection between the threads (its protected by a mutex) 
-Output: int, success code if mutex locked successfully, error code else
-*/
-int game_logic_in_recive_thread(char *message_type, char *params[], char *message_between_threads);
-
-/*
-This function does the game logic in the recive thread.
-Input:  char *SendStr - a string contains the string we want to send to the server
-		char *message_between_threads - a string that use for connection between the threads (its protected by a mutex)
-		int *quit - a varibel that if equal 1 said that the user want to quit.
-Output: void
-*/
-void game_logic_in_send_thread(char *SendStr, char *message_between_threads, int *quit);

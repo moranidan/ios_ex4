@@ -58,8 +58,6 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 
 		printf("Choose what to do next:\n1. Play against another client\n2. Play against the server\n3. View the leaderbord\n4. Quit\n");
 	}
-	if (strcmp(message_type, "SERVER_INVITE") == 0 ) {
-	}
 	if (strcmp(message_type, "SERVER_LEADERBOARD") == 0) {
 		parse_and_print_leaderboard(params[0]);
 
@@ -138,11 +136,9 @@ void game_logic_in_send_thread(char *SendStr, char *message_between_threads, int
 		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
 		if (*SendStr == '1') {
 			create_string_to_send(SendStr, "CLIENT_REFRESH", &params, &send_str_len);
-			//wait to server leaderboard message
 		}
 		if (*SendStr == '2') {
 			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", &params, &send_str_len);
-			//wait to server main menu message
 		}
 	}
 	else if (strcmp(message_between_threads, "SERVER_GAME_OVER_MENU") == 0) {
