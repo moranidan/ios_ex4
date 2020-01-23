@@ -135,23 +135,6 @@ static DWORD RecvDataThread(void)
 		strcpy_s(message_type, MAX_MESSAGE_TYPE_LENGTH, "");
 		char *params[] = { "","","","" };
 		char *AcceptedStr = NULL;
-		int time_val = 15000;
-		//lock mutex
-		if (lock_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
-			goto ERR_WITH_MUTEX;
-		}
-		//critical zone
-		if (strcmp(message_between_threads, SENT_CLIENT_VERSUS) == 0) {
-			time_val = 30000;
-		}
-		//free mutex
-		if (release_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
-			goto ERR_WITH_MUTEX;
-		}
-
-		if (setsockopt(server_socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&time_val, sizeof(time_val)) != 0 ) {
-			printf("setsockopt failed\n");
-		}
 		RecvRes = ReceiveString(&AcceptedStr, server_socket);
 		if (RecvRes == TRNS_FAILED) {
 			printf("Socket error while trying to write data to socket\n");
