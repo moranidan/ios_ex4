@@ -205,7 +205,7 @@ static void CleanupWorkerThreads()
 
 			if (Res == WAIT_OBJECT_0) {
 				if (ThreadInputs[Ind] != NULL) {
-					if (closesocket(ThreadInputs[Ind]) != FALSE) {	// TODO check errors
+					if (closesocket(ThreadInputs[Ind]) != FALSE) {
 						printf("Error when closing socket\n");
 					}
 				}
