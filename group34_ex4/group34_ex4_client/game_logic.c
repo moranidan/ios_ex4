@@ -34,7 +34,7 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 		return ERR_CODE_MUTEX;
 	}
 
-	if (strcmp(message_type, "SERVER_DENIED") == 0) {  // need to move
+	if (strcmp(message_type, "SERVER_DENIED") == 0) { 
 		int err = SUCCESS_CODE;
 		err = try_to_connect_again(SERVER_DENIED_MENU_BEF, SERVER_DENIED_MENU_AFT);
 		while (err == ERR_CODE_CONNECTION) {
@@ -42,6 +42,9 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 		}
 		close_handle(&message_between_threads_mutex_handle);
 		return err;
+	}
+	if (strcmp(message_type, "SERVER_APPROVED") == 0) {
+
 	}
 	if (strcmp(message_type, "SERVER_MAIN_MENU") == 0) {
 
@@ -88,6 +91,9 @@ int game_logic_in_recive_thread(char *message_type, char *params[], char *messag
 
 		printf("Choose a move from the list: Rock, Paper, Scissors, Lizard or Spock:\n");
 	}
+	if (strcmp(message_type, "SERVER_INVITE") == 0) {
+		
+	}
 	if (strcmp(message_type, "SERVER_GAME_RESULTS") == 0) {
 		printf("You played:%s\n%s played:%s\n", params[2], params[0], params[1]);
 		if (params[3] != NULL) {
@@ -117,7 +123,6 @@ void game_logic_in_send_thread(char *SendStr, char *message_between_threads, int
 		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
 		if (*SendStr == '1') {
 			create_string_to_send(SendStr, "CLIENT_VERSUS", params, &send_str_len);
-			strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, SENT_CLIENT_VERSUS);
 		}
 		if (*SendStr == '2') {
 			create_string_to_send(SendStr, "CLIENT_CPU", params, &send_str_len);
