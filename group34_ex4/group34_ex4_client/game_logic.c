@@ -113,42 +113,42 @@ ERR_WITH_MUTEX:
 void game_logic_in_send_thread(char *SendStr, char *message_between_threads, int *quit) {
 	int send_str_len = MAX_SENDSTR_FOR_CLIENT;
 	if (strcmp(message_between_threads, "SERVER_MAIN_MENU") == 0) {
-		char *params[] = { NULL, NULL, NULL, NULL };
+		char *params = NULL;
 		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
 		if (*SendStr == '1') {
-			create_string_to_send(SendStr, "CLIENT_VERSUS", &params, &send_str_len);
+			create_string_to_send(SendStr, "CLIENT_VERSUS", params, &send_str_len);
 			strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, SENT_CLIENT_VERSUS);
 		}
 		if (*SendStr == '2') {
-			create_string_to_send(SendStr, "CLIENT_CPU", &params, &send_str_len);
+			create_string_to_send(SendStr, "CLIENT_CPU", params, &send_str_len);
 		}
 		if (*SendStr == '3') {
-			create_string_to_send(SendStr, "CLIENT_LEADERBOARD", &params, &send_str_len);
+			create_string_to_send(SendStr, "CLIENT_LEADERBOARD", params, &send_str_len);
 		}
 		if (*SendStr == '4') {
-			create_string_to_send(SendStr, "CLIENT_DISCONNECT", &params, &send_str_len);
+			create_string_to_send(SendStr, "CLIENT_DISCONNECT", params, &send_str_len);
 			strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, USER_ASKED_TO_QUIT);
 			*quit = 1;
 		}
 	}
 	else if (strcmp(message_between_threads, "SERVER_LEADERBOARD") == 0) {
-		char *params[] = { NULL, NULL, NULL, NULL };
+		char *params = NULL;
 		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
 		if (*SendStr == '1') {
-			create_string_to_send(SendStr, "CLIENT_REFRESH", &params, &send_str_len);
+			create_string_to_send(SendStr, "CLIENT_REFRESH", params, &send_str_len);
 		}
 		if (*SendStr == '2') {
-			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", &params, &send_str_len);
+			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", params, &send_str_len);
 		}
 	}
 	else if (strcmp(message_between_threads, "SERVER_GAME_OVER_MENU") == 0) {
-		char *params[] = { NULL, NULL, NULL, NULL };
+		char *params = NULL;
 		strcpy_s(message_between_threads, MAX_MESSAGE_TYPE_LENGTH, MESSAGE_RECIVED_BETWEEN_THREADS);
 		if (*SendStr == '1') {
-			create_string_to_send(SendStr, "CLIENT_REPLAY", &params, &send_str_len);
+			create_string_to_send(SendStr, "CLIENT_REPLAY", params, &send_str_len);
 		}
 		if (*SendStr == '2') {
-			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", &params, &send_str_len);
+			create_string_to_send(SendStr, "CLIENT_MAIN_MENU", params, &send_str_len);
 		}
 	}
 	else if (strcmp(message_between_threads, "TRY_TO_CONNECT") == 0) {
