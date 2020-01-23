@@ -15,6 +15,9 @@
 #include "../Shared/SocketExampleShared.h"
 #include "../Shared/SocketSendRecvTools.h"
 #include <WS2tcpip.h>
+#include <windows.h>
+#include "Shlwapi.h"
+
 
 
 

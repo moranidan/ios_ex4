@@ -19,7 +19,7 @@
 
 typedef enum { TRNS_FAILED, TRNS_DISCONNECTED, TRNS_SUCCEEDED, TRNS_TIMEOUT } TransferResult_t;
 
-#define MAX_MESSAGE_TYPE_LENGTH  28
+#define MAX_MESSAGE_TYPE_LENGTH  30
 
 /**
  * SendBuffer() uses a socket to send a buffer.
