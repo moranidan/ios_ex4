@@ -32,7 +32,7 @@
 
 #define NUM_PARAMETERS 4
 
-#define MAX_MOVE_LEN 9
+#define MAX_MOVE_LEN 10
 
 #define MAX_USERNAME_LEN 21
 

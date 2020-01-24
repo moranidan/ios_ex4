@@ -26,6 +26,7 @@ static HANDLE CreateThreadSimple(
 
 void MainServer(char *argv[])
 {
+	delete_file();
 	int Ind;
 	int Loop;
 	SOCKET MainSocket = INVALID_SOCKET;

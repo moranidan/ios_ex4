@@ -300,7 +300,7 @@ int name_to_number(char *move_name) {
 		return SCISSORS;
 	}
 	else {
-		printf("not A valid move\n");
+		printf("not A valid move: %s\n", *move_name);
 		return ERR_CODE_DEFAULT;
 	}
 }
@@ -381,14 +381,13 @@ int versus_game(BOOL *replay, char *username, SOCKET t_socket) {
 	if (file_exists(fd) == FALSE) {
 		// player1 - file must be created
 		return_code = player1_game(fd, file_mutex_handle, player1_event, player2_event, username, t_socket);
-		if (delete_file() < 0) {
-			return ERR_CODE_FILE;
-		}
+		delete_file();
 	}
 	else {
 		// player2 - file already there
 		return_code = player2_game(fd, file_mutex_handle, player1_event, player2_event, username, t_socket);
 	}
+	printf("versus return: %d", return_code);
 	return return_code;
 }
 
@@ -406,14 +405,14 @@ int player1_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 	if (release_mutex(&file_mutex_handle, NULL) != SUCCESS_CODE) {
 		return ERR_CODE_MUTEX;
 	}
-	wait_code = WaitForSingleObject(player2_event, INFINITE);	// wait for threads to run TODO change timeout
+	wait_code = WaitForSingleObject(player2_event, RESPONSE_TIMEOUT);	// wait for threads to run TODO change timeout
 	if (WAIT_TIMEOUT == wait_code) {
 		// timeout reached, no other player 
 		create_string_to_send(to_send, "SERVER_NO_OPPONENTS", NULL, &max_size);
 		if (SendAndCheck(to_send, t_socket) == ERR_SEND_SOCKET) {
 			return ERR_SEND_SOCKET;
 		}
-		if (delete_file(fd) < 0) {
+		if (delete_file() < 0) {
 			return ERR_CODE_FILE;
 		}
 		return SUCCESS_CODE;
@@ -635,7 +634,7 @@ char* GetFileLastRow(FILE *fp) {
 	if (buffer == NULL) {
 		printf("GetFileLastRow malloc error!!");
 	}
-	while (fgets(buffer, sizeof(buffer), fp) != NULL) {
+	while (fgets(buffer, MAX_USERNAME_LEN, fp) != NULL) {
 		;
 	}
 	char *return_pointer = strtok(buffer, "\n");
