@@ -133,7 +133,6 @@ void MainServer(char *argv[])
 		goto server_cleanup_2;
 	}
 
-	printf("Waiting for a client to connect...\n");
 
 	while (1)
 	{
@@ -175,6 +174,7 @@ server_cleanup_2:
 		printf("Failed to close MainSocket, error %ld. Ending program\n", WSAGetLastError());
 
 server_cleanup_1:
+	delete_file();
 	if (WSACleanup() == SOCKET_ERROR)
 		printf("Failed to close Winsocket, error %ld. Ending program.\n", WSAGetLastError());
 }
@@ -205,9 +205,7 @@ static void CleanupWorkerThreads()
 
 			if (Res == WAIT_OBJECT_0) {
 				if (ThreadInputs[Ind] != NULL) {
-					if (closesocket(ThreadInputs[Ind]) != FALSE) {
-						printf("Error when closing socket\n");
-					}
+					closesocket(ThreadInputs[Ind]) != FALSE;
 				}
 				ret_val = CloseHandle(ThreadHandles[Ind]);
 				if (FALSE == ret_val)

@@ -32,6 +32,8 @@ BOOL player_win(int player_choice, int cpu_choice);
 int name_to_number(char *move_name);
 void number_to_name(int num, char *move_name);
 int check_if_replay(CONNECTION_THREAD_params_t *p_params, BOOL *replay);
+char* GetFileLastRow(FILE *fp);
+
 
 
 #endif // CONNECTION_THREAD_H

@@ -31,7 +31,6 @@ DWORD WINAPI ListenThread(LPVOID lpParam) {
 			return ERR_ACCEPT_SOCKET;
 		}
 
-		printf("Client Connected.\n");
 
 		Ind = FindFirstUnusedThreadSlot(p_params->ThreadHandles);
 
@@ -64,9 +63,10 @@ DWORD WINAPI ListenThread(LPVOID lpParam) {
 											  // ThreadInputs[Ind] when the
 											  // time comes.
 
-			p_cthread_params->WorkerSocket = &(p_params->ThreadInputs[Ind]);
+			p_cthread_params->WorkerSocket = (p_params->ThreadInputs[Ind]);
 			p_cthread_params->Done = p_params->Done;
 			p_cthread_params->is_full = &is_full;
+			//p_cthread_params->username = 
 			p_params->ThreadHandles[Ind] = CreateThread(
 				NULL,
 				0,

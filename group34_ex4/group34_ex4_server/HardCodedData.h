@@ -28,6 +28,8 @@
 
 #define RESPONSE_TIMEOUT 15000
 
+#define REPLAY_TIMEOUT 1000
+
 #define NUM_PARAMETERS 4
 
 #define MAX_MOVE_LEN 9
@@ -59,8 +61,8 @@ typedef struct
 
 typedef struct
 {
-	SOCKET *WorkerSocket;
+	SOCKET WorkerSocket;
 	BOOL *Done;
 	BOOL *is_full;
-	char *username;
+	//char *username;
 } CONNECTION_THREAD_params_t;
