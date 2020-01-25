@@ -89,23 +89,4 @@ TransferResult_t ReceiveString( char** OutputStrPtr, SOCKET sd );
 
 //declaration on our shared functions
 
-/*
-This function create the string that wiil be send between client and server by using the targil rules 
-Input:  char *send_str - a string that will contains the string that will be send' there have to be a malloc on it befor calling this func.
-		char *message_type - a string cntains the message type you want to send.
-		char *params[] - a list [4] of the parameters if needed, need to be inizilaized to NULL.
-		int *max_send_len - nedd to send to the fun the max len of message_type + params.
-Output: void
-*/
-void create_string_to_send(char *send_str, char *message_type, char *params[], int *max_send_len);
-
-/*
-This function parse the string that we get from the client or the server by using the targil rules
-Input:  char *recv_string - a string that contains the string we get from the client or server.
-		char *message_type - a string cntains the message type you want to send.
-		char *params[] - a list [4] of the parameters if needed, need to be inizilaized to NULL.
-Output: void
-*/
-void parse_recv_string(char *recv_string, char *message_type, char *params[]);
-
 #endif // SOCKET_SEND_RECV_TOOLS_H

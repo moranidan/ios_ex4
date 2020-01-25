@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../Shared/SharedHardCodedDataAndFunctions.h"
 #include <stdio.h>
 #include <tchar.h>
 #include <Windows.h>
@@ -26,16 +27,4 @@ static LPCTSTR MUTEX_MESSAGE_BETWEEN_THREADS_NAME = _T("group34_ex4_client_messa
 #define SERVER_DENIED_MENU_BEF "Server on"
 #define SERVER_DENIED_MENU_AFT " denied the connection request"
 
-static const int SUCCESS_CODE = 0;
-static const int ERR_CODE_NOT_ENOUGH_ARGUMENTS = -5;
-static const int ERR_CODE_ALLOCCING_MEMORY = -6;
-static const int ERR_CODE_SOCKET = -7;
-static const int ERR_CODE_TIMEOUT = -8;
-static const int ERR_CODE_THREAD = -2;
-static const int ERR_CODE_CREAT_THEARD = -3;
-static const int ERR_CODE_CLOSE_THREAD = -4;
-static const int ERR_CODE_MUTEX = -1;
-static const int ERR_CODE_CONNECTION = -10;
-static const int ERR_CODE_WSACLEANUP = 11;
-static const int ERR_GET_EXITCODE = -12;
 
