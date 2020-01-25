@@ -1,10 +1,13 @@
+// Server.c
+
+// Description - This module provides the basic functions of the server 
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+// Includes --------------------------------------------------------------------
 
 #include "Server.h"
-
 
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
@@ -12,17 +15,7 @@ HANDLE ThreadHandles[NUM_OF_WORKER_THREADS];
 SOCKET ThreadInputs[NUM_OF_WORKER_THREADS];
 HANDLE SpareHandle = NULL;		// handle for connection when we exceed the max. closed shortly after.
 
-/*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
-
-//static int FindFirstUnusedThreadSlot();
-static void CleanupWorkerThreads();
-static HANDLE CreateThreadSimple(
-	LPTHREAD_START_ROUTINE p_start_routine,
-	LPVOID p_thread_parameters,
-	LPDWORD p_thread_id
-);
-
-/*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
+// Function Definitions --------------------------------------------------------
 
 void MainServer(char *argv[])
 {
@@ -42,7 +35,6 @@ void MainServer(char *argv[])
 	p_lthread_params = (LISTEN_THREAD_params_t *)calloc(1, sizeof(LISTEN_THREAD_params_t)); // allocate memory for thread parameters
 	if (NULL == p_lthread_params) {			// cheack if memery allocation was successful
 		printf("Error when allocating memory");
-		// return_code = ERR_CODE_DEFAULT;
 		goto server_cleanup_2;
 	}
 
@@ -163,8 +155,6 @@ server_cleanup_1:
 		printf("Failed to close Winsocket, error %ld. Ending program.\n", WSAGetLastError());
 }
 
-
-/*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
 static void CleanupWorkerThreads()
 {

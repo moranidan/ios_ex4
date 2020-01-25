@@ -1,14 +1,18 @@
+// ConnectionThread.c
+
+// This module provides the functions and logic of each connection with client.
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+
+// Includes --------------------------------------------------------------------
 
 #include "ConnectionThread.h"
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Shlwapi.lib")
 
+// Function Definitions --------------------------------------------------------
 
-
-//Service thread is the thread that opens for each successful client connection and "talks" to the client.
 DWORD ServiceThread(LPVOID lpParam)
 {
 	CONNECTION_THREAD_params_t *p_params;			// pointer for the parameters
@@ -62,7 +66,7 @@ DWORD ServiceThread(LPVOID lpParam)
 	}
 
 EXIT:
-	closesocket(t_socket);	// TODO check
+	closesocket(t_socket);
 	(p_params->WorkerSocket) = NULL;
 	return 0;
 }
@@ -389,7 +393,6 @@ int versus_game(BOOL *replay, char *username, SOCKET t_socket) {
 		// player2 - file already there
 		return_code = player2_game(fd, file_mutex_handle, player1_event, player2_event, username, t_socket);
 	}
-	printf("versus return: %d", return_code);
 	if (return_code < 0) {
 		// connection error on other side
 		char *send_params[4] = { "OPPONENT", NULL, NULL, NULL };
@@ -423,7 +426,6 @@ int player1_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 			return ERR_SEND_SOCKET;
 		}
 		delete_file();
-
 		return SUCCESS_CODE;
 	}
 	else if (WAIT_OBJECT_0 != wait_code)			// check for errors
@@ -451,7 +453,6 @@ int player1_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 	int player2_choice = -1;
 	while (player1_replay == TRUE && player2_replay == TRUE) {
 		// game
-		printf("t_socket1: %p\n", t_socket);
 		int ret_code = ask_and_receive_move(&player1_choice, t_socket);
 		if (ret_code < 0) {
 			return ret_code;
@@ -534,8 +535,6 @@ int player2_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 
 	while (player1_replay == TRUE && player2_replay == TRUE) {
 		// game
-		printf("t_socket2: %p\n", t_socket);
-
 		int player1_choice = -1;
 		int player2_choice = -1;
 		int ret_code = ask_and_receive_move(&player2_choice, t_socket);
@@ -616,19 +615,6 @@ int delete_file() {
 }
 
 
-int read_line(FILE *fd, char *line) {
-	fd = fopen(GAME_SESSION_PATH, "a+");
-	if (fd == NULL) {
-		printf("Error when opening game session file\n");
-	}
-	if (fgets(line, sizeof(line), fd) == NULL) {
-		return ERR_CODE_FILE;
-	}
-	fclose(fd);
-	return SUCCESS_CODE;
-}
-
-
 int write_line(FILE *fd, char *line) {
 	fd = fopen(GAME_SESSION_PATH, "a+");
 	if (fd == NULL) {
@@ -673,7 +659,6 @@ int create_and_check_event(HANDLE *event_handle, char *event_name)
 		printf("Error when creating event: %d\n", GetLastError());
 		return ERR_CODE_EVENT;
 	}
-
 	return SUCCESS_CODE;
 }
 
@@ -685,5 +670,3 @@ int set_and_check_event(HANDLE *event_handle) {
 	}
 	return SUCCESS_CODE;
 }
-
-

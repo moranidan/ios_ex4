@@ -1,8 +1,15 @@
+// HardCodedData.h
+
+// This header consists of the constat numbers and strings in the project
+
 #pragma once
 
-#include "../Shared/SharedHardCodedDataAndFunctions.h"
+// Includes --------------------------------------------------------------------
 
+#include "../Shared/SharedHardCodedDataAndFunctions.h"
 #include <tchar.h>
+
+// Constants -------------------------------------------------------------------
 
 #define NUM_OF_WORKER_THREADS 2
 
@@ -25,8 +32,6 @@
 #define THREAD_TIMEOUT 1000
 
 #define RESPONSE_TIMEOUT 15000
-
-#define REPLAY_TIMEOUT 1000
 
 #define NUM_PARAMETERS 4
 
@@ -62,5 +67,4 @@ typedef struct
 	SOCKET WorkerSocket;
 	BOOL *Done;
 	BOOL *is_full;
-	//char *username;
 } CONNECTION_THREAD_params_t;

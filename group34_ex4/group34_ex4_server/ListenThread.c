@@ -1,11 +1,17 @@
+// ListenThread.c
+
+// This module provides the functions and logic of the listening-to-new-connections thread
+// Listen thread is the thread that accepts new connections and creates their threads
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+// Includes --------------------------------------------------------------------
+
 #include "ListenThread.h"
 
+// Function Definitions --------------------------------------------------------
 
-//Listen thread is the thread that accepts new connections and creates their threads
 DWORD WINAPI ListenThread(LPVOID lpParam) {
 	LISTEN_THREAD_params_t *p_params;			// pointer for the parameters
 	if (NULL == lpParam) {					// check if NULL was received instead of parameter
@@ -36,12 +42,6 @@ DWORD WINAPI ListenThread(LPVOID lpParam) {
 
 		if (Ind == NUM_OF_WORKER_THREADS) //no slot is available
 		{
-			//printf("No slots available for client, dropping the connection.\n");
-			//closesocket(AcceptSocket); //Closing the socket, dropping the connection.
-			//p_params->Th readInputs[Ind] = AcceptSocket; // shallow copy: don't close 
-												  // AcceptSocket, instead close 
-												  // ThreadInputs[Ind] when the
-												  // time comes.
 			is_full = TRUE;
 
 			p_cthread_params->WorkerSocket = AcceptSocket;
@@ -59,14 +59,13 @@ DWORD WINAPI ListenThread(LPVOID lpParam) {
 		else
 		{
 			p_params->ThreadInputs[Ind] = AcceptSocket; // shallow copy: don't close 
-											  // AcceptSocket, instead close 
-											  // ThreadInputs[Ind] when the
-											  // time comes.
+														// AcceptSocket, instead close 
+														// ThreadInputs[Ind] when the
+														// time comes.
 
 			p_cthread_params->WorkerSocket = (p_params->ThreadInputs[Ind]);
 			p_cthread_params->Done = p_params->Done;
 			p_cthread_params->is_full = &is_full;
-			//p_cthread_params->username = 
 			p_params->ThreadHandles[Ind] = CreateThread(
 				NULL,
 				0,
@@ -80,7 +79,6 @@ DWORD WINAPI ListenThread(LPVOID lpParam) {
 	free(p_cthread_params);
 }
 
-/*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
 static int FindFirstUnusedThreadSlot(HANDLE *ThreadHandles)
 {
