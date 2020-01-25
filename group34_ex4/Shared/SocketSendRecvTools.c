@@ -28,7 +28,7 @@ TransferResult_t SendBuffer( const char* Buffer, int BytesToSend, SOCKET sd )
 		BytesTransferred = send (sd, CurPlacePtr, RemainingBytesToSend, 0);
 		if ( BytesTransferred == SOCKET_ERROR ) 
 		{
-			printf("send() failed, error %d\n", WSAGetLastError() );
+			//printf("send() failed, error %d\n", WSAGetLastError() );
 			return TRNS_FAILED;
 		}
 		
@@ -83,11 +83,11 @@ TransferResult_t ReceiveBuffer( char* OutputBuffer, int BytesToReceive, SOCKET s
 		{
 			int error_type = WSAGetLastError();
 			if (error_type == WSAETIMEDOUT) {
-				printf("recv() failed, error %d\n", WSAGetLastError());
+				//printf("recv() failed, error %d\n", WSAGetLastError());
 				return	TRNS_TIMEOUT;
 			}
 			else {
-				printf("recv() failed, error %d\n", WSAGetLastError());
+				//printf("recv() failed, error %d\n", WSAGetLastError());
 				return TRNS_FAILED;
 			}
 		}		
@@ -148,48 +148,5 @@ TransferResult_t ReceiveString( char** OutputStrPtr, SOCKET sd )
 		
 	return RecvRes;
 }
-
-
-// our functions -----------------------------------------------------------------------
-
-void create_string_to_send(char *send_str, char *message_type, char *params[], int *max_send_len) {
-	strcpy_s(send_str, *max_send_len, message_type);
-	if (params == NULL) {
-		sprintf_s(send_str + strlen(send_str), *max_send_len, "\n");
-		return;
-	}
-	else if (params[1] == NULL) {
-		sprintf_s(send_str + strlen(send_str), *max_send_len, ":%s\n", params[0]);
-		return;
-	}
-	else if (params[2] == NULL) {
-		sprintf_s(send_str + strlen(send_str), *max_send_len, ":%s;%s\n", params[0], params[1]);
-		return;
-	}
-	else if (params[3] == NULL) {
-		sprintf_s(send_str + strlen(send_str), *max_send_len, ":%s;%s;%s\n", params[0], params[1], params[2]);
-		return;
-	}
-	sprintf_s(send_str + strlen(send_str), *max_send_len, ":%s;%s;%s;%s\n", params[0], params[1], params[2], params[3]);
-}
-
-
-void parse_recv_string(char *recv_string, char *message_type, char *params[]) {
-	if (strchr(recv_string, ':') == NULL) {
-		char *inner_msg_type = strtok(recv_string, "\n");
-		strcpy_s(message_type, 30, inner_msg_type);
-		return;
-	}
-	char *inner_msg_type = strtok(recv_string, ":");
-	strcpy_s(message_type, 30, inner_msg_type);
-	char *param_in_str;
-	param_in_str = strtok(NULL, "\n");
-	params[0] = strtok(param_in_str, ";");
-	for (int i = 1; i < 4 ; i ++ ) { 
-		params[i] = strtok(NULL, ";");
-	}
-	return;
-}
-
 
 

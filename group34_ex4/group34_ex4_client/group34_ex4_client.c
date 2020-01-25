@@ -132,12 +132,13 @@ static DWORD RecvDataThread(void)
 	char message_type[MAX_MESSAGE_TYPE_LENGTH] = "";
 	while (1)
 	{
-		strcpy_s(message_type, MAX_MESSAGE_TYPE_LENGTH, "");
 		char *params[] = { "","","","" };
 		char *AcceptedStr = NULL;
+		strcpy_s(message_type, MAX_MESSAGE_TYPE_LENGTH, "");
+		
 		RecvRes = ReceiveString(&AcceptedStr, server_socket);
+		
 		if (RecvRes == TRNS_FAILED) {
-			printf("Socket error while trying to write data to socket\n");
 			close_handle(&message_between_threads_mutex_handle);
 			free(AcceptedStr);
 			return ERR_CODE_SOCKET;
@@ -174,9 +175,8 @@ static DWORD RecvDataThread(void)
 				return ERR_CODE_TIMEOUT;
 			}
 		}
-		else {
+		else {                           //the message recived
 			parse_recv_string(AcceptedStr, message_type, &params);
-			printf("%s\n", AcceptedStr);
 			game_logic_in_recive_thread(message_type, &params, &message_between_threads);
 		}
 		free(AcceptedStr);
@@ -195,11 +195,13 @@ static DWORD SendDataThread(void)
 	SendStr[0] = '\0';
 	int quit = 0;
 	TransferResult_t SendRes;
+	
 	// open mutex
 	HANDLE message_between_threads_mutex_handle = NULL;
 	if (open_and_check_mutex(&message_between_threads_mutex_handle, SYNCHRONIZE, FALSE, MUTEX_MESSAGE_BETWEEN_THREADS_NAME, NULL) != SUCCESS_CODE) {
 		return ERR_CODE_MUTEX;
 	}
+	
 	while (1)
 	{
 		gets_s(SendStr, sizeof(SendStr)); //Reading a string from the keyboard
@@ -231,7 +233,6 @@ static DWORD SendDataThread(void)
 		SendRes = SendString(SendStr, server_socket);
 		if (SendRes == TRNS_FAILED)
 		{
-			printf("Socket error while trying to write data to socket\n");
 			close_handle(&message_between_threads_mutex_handle);
 			return ERR_CODE_SOCKET;
 		}
@@ -290,7 +291,7 @@ int connecting_to_server(char *server_ip, int server_port, void *p_server_socket
 		}
 		return ERR_CODE_SOCKET;
 	}
-	char sendstr[MAX_MESSAGE_TYPE_LENGTH + MAX_USER_NAME_INPUT] = "";
+	char sendstr[MAX_MESSAGE_TYPE_LENGTH + MAX_USER_NAME_INPUT] = "";   //send to server CLIENT_REQUEST message
 	sprintf_s(sendstr, MAX_MESSAGE_TYPE_LENGTH + MAX_USER_NAME_INPUT, "CLIENT_REQUEST:%s\n", username);
 	SendRes = SendString(sendstr, server_socket);
 	if (SendRes == TRNS_FAILED)
@@ -298,6 +299,7 @@ int connecting_to_server(char *server_ip, int server_port, void *p_server_socket
 		printf("Socket error while trying to write data to socket\n");
 		return ERR_CODE_SOCKET;
 	}
+
 	// open mutex
 	HANDLE message_between_threads_mutex_handle = NULL;
 	if (open_and_check_mutex(&message_between_threads_mutex_handle, SYNCHRONIZE, FALSE, MUTEX_MESSAGE_BETWEEN_THREADS_NAME, NULL) != SUCCESS_CODE) {
@@ -327,14 +329,14 @@ int connecting_to_server(char *server_ip, int server_port, void *p_server_socket
 	LPDWORD lpExitCodeSend;
 	LPDWORD lpExitCodeRecv;
 
-	while (quit == 0) {
+	while (quit == 0) {      //while user didnt asked to quit
 		//lock mutex
 		if (lock_mutex(&message_between_threads_mutex_handle, NULL) != SUCCESS_CODE) {
 			return_code = ERR_CODE_MUTEX;
 			goto ERR_WITH_MUTEX2;
 		}
 		//critical zone
-		if (strcmp(message_between_threads, USER_ASKED_TO_QUIT) == 0) {
+		if (strcmp(message_between_threads, USER_ASKED_TO_QUIT) == 0) {      //check if user asked to quit
 			quit = 1;
 		}
 		//free mutex
@@ -342,8 +344,8 @@ int connecting_to_server(char *server_ip, int server_port, void *p_server_socket
 			return_code = ERR_CODE_MUTEX;
 			goto ERR_WITH_MUTEX2;
 		}
-	}
-	ret_val = TerminateThread(hThread[1], &exit_code);
+	}      // user asked to quit
+	ret_val = TerminateThread(hThread[1], &exit_code);    //close recive thread 
 	if (FALSE == ret_val)
 	{
 		printf("Error when terminating thread: %d\n", GetLastError());
@@ -351,15 +353,15 @@ int connecting_to_server(char *server_ip, int server_port, void *p_server_socket
 	if (GetExitCodeThread(hThread[0], &lpExitCodeSend) == 0) {
 		return_code = ERR_GET_EXITCODE;
 	}
-	if (lpExitCodeSend == STILL_ACTIVE) {
+	if (lpExitCodeSend == STILL_ACTIVE) {                //check if send thread still active, if so close him
 		ret_val = TerminateThread(hThread[0], &exit_code);
 		if (FALSE == ret_val)
 		{
 			printf("Error when terminating thread: %d\n", GetLastError());
 		}
 	}
-	WaitForMultipleObjects(2, hThread, TRUE, INFINITE);
-	if (GetExitCodeThread(hThread[0], &lpExitCodeSend) == 0) {
+	WaitForMultipleObjects(2, hThread, TRUE, INFINITE);    // wait for both threads to be closed
+	if (GetExitCodeThread(hThread[0], &lpExitCodeSend) == 0) {   //get their exit code 
 		return_code = ERR_GET_EXITCODE;
 	}
 	if (GetExitCodeThread(hThread[1], &lpExitCodeRecv) == 0) {
@@ -385,88 +387,4 @@ ERR_WITH_MUTEX1:
 		return_code = ERR_CODE_WSACLEANUP;
 	}
 	return return_code;
-}
-
-
-// utility functions --------------------------------------------------------------
-
-int check_arguments(int argc, int *return_code) {
-	if (argc < 4) {    //check if there are enough arguments
-		printf("not enough arguments in group34_ex4_client.exe ");
-		if (return_code != NULL) {
-			*return_code = ERR_CODE_NOT_ENOUGH_ARGUMENTS;
-		}
-		return ERR_CODE_NOT_ENOUGH_ARGUMENTS;
-	}
-	return SUCCESS_CODE;
-}
-
-int create_and_check_mutex(
-	HANDLE *mutex_handle,
-	LPSECURITY_ATTRIBUTES lpMutexAttributes,
-	BOOL bInitialOwner,
-	LPCTSTR lpName,
-	int *return_code
-) {
-	*mutex_handle = CreateMutex(lpMutexAttributes, bInitialOwner, lpName);
-	if (*mutex_handle == NULL) {
-		printf("Error when creating mutex: %d\n", GetLastError());
-		if (return_code != NULL) {
-			*return_code = ERR_CODE_MUTEX;
-		}
-		return ERR_CODE_MUTEX;
-	}
-	return SUCCESS_CODE;
-}
-
-int open_and_check_mutex(
-	HANDLE *mutex_handle,
-	LPSECURITY_ATTRIBUTES lpMutexAttributes,
-	BOOL bInitialOwner,
-	LPCTSTR lpName,
-	int *return_code
-) {
-	*mutex_handle = OpenMutex(lpMutexAttributes, bInitialOwner, lpName);
-	if (*mutex_handle == NULL) {
-		printf("Error when opening mutex: %d\n", GetLastError());
-		if (return_code != NULL) {
-			*return_code = ERR_CODE_MUTEX;
-		}
-		return ERR_CODE_MUTEX;
-	}
-	return SUCCESS_CODE;
-}
-
-int lock_mutex(HANDLE *mutex_handle, int *return_code) {
-	DWORD wait_code;
-	wait_code = WaitForSingleObject(*mutex_handle, INFINITE);
-	if (wait_code != WAIT_OBJECT_0) {
-		printf("Error when locking mutex\n");
-		if (return_code != NULL) {
-			*return_code = ERR_CODE_MUTEX;
-		}
-		return ERR_CODE_MUTEX;
-	}
-	return SUCCESS_CODE;
-}
-
-int release_mutex(HANDLE *mutex_handle, int *return_code) {
-	BOOL ret_val;
-	ret_val = ReleaseMutex(*mutex_handle);
-	if (ret_val == FALSE) {
-		printf("Error when releasing mutex: %d\n", GetLastError());
-		if (return_code != NULL) {
-			*return_code = ERR_CODE_MUTEX;
-		}
-		return ERR_CODE_MUTEX;
-	}
-	return SUCCESS_CODE;
-}
-
-void close_handle(HANDLE *handle) {
-	BOOL ret_val;
-	ret_val = CloseHandle(*handle);
-	if (FALSE == ret_val) {
-		printf("Error when closing handle: %d\n", GetLastError());
-	}
 }
