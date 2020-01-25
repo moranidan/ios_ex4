@@ -360,6 +360,8 @@ int check_if_replay(BOOL *replay, SOCKET t_socket) {
 
 int versus_game(BOOL *replay, char *username, SOCKET t_socket) {
 	int return_code = SUCCESS_CODE;
+	char *to_send[MAX_MESSAGE_TYPE_LENGTH + MAX_USERNAME_LEN];
+	int max_size = MAX_MESSAGE_TYPE_LENGTH + MAX_USERNAME_LEN;
 	FILE *fd = NULL;
 	HANDLE player1_event;
 	HANDLE player2_event;
@@ -388,13 +390,21 @@ int versus_game(BOOL *replay, char *username, SOCKET t_socket) {
 		return_code = player2_game(fd, file_mutex_handle, player1_event, player2_event, username, t_socket);
 	}
 	printf("versus return: %d", return_code);
-	return return_code;
+	if (return_code < 0) {
+		// connection error on other side
+		char *send_params[4] = { "OPPONENT", NULL, NULL, NULL };
+		create_string_to_send(to_send, "SERVER_OPPONENT_QUIT", NULL, &max_size);
+		if (SendAndCheck(to_send, t_socket) == ERR_SEND_SOCKET) {
+			return ERR_SEND_SOCKET;
+		}
+	}
+	return SUCCESS_CODE;
 }
 
 
 int player1_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDLE player2_event, char *username, SOCKET t_socket) {
 	DWORD wait_code;
-	char *to_send[MAX_MESSAGE_TYPE_LENGTH];
+	char *to_send[MAX_MESSAGE_TYPE_LENGTH + MAX_USERNAME_LEN];
 	int max_size = MAX_MESSAGE_TYPE_LENGTH + MAX_USERNAME_LEN;
 	char *username_read = NULL;
 	char *choice_str = NULL;
@@ -412,9 +422,8 @@ int player1_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 		if (SendAndCheck(to_send, t_socket) == ERR_SEND_SOCKET) {
 			return ERR_SEND_SOCKET;
 		}
-		if (delete_file() < 0) {
-			return ERR_CODE_FILE;
-		}
+		delete_file();
+
 		return SUCCESS_CODE;
 	}
 	else if (WAIT_OBJECT_0 != wait_code)			// check for errors
@@ -442,6 +451,7 @@ int player1_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 	int player2_choice = -1;
 	while (player1_replay == TRUE && player2_replay == TRUE) {
 		// game
+		printf("t_socket1: %p\n", t_socket);
 		int ret_code = ask_and_receive_move(&player1_choice, t_socket);
 		if (ret_code < 0) {
 			return ret_code;
@@ -458,7 +468,10 @@ int player1_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 		if (release_mutex(&file_mutex_handle, NULL) != SUCCESS_CODE) {
 			return ERR_CODE_MUTEX;
 		}
-		wait_code = WaitForSingleObject(player2_event, INFINITE);	// wait for threads to run TODO change timeout
+		wait_code = WaitForSingleObject(player2_event, RESPONSE_TIMEOUT);// wait for threads to run TODO change timeout
+		if (WAIT_TIMEOUT == wait_code) {
+			return ERR_CODE_DEFAULT;
+		}
 		choice_str = GetFileLastRow(fd);
 		player2_choice = name_to_number(choice_str);
 		// find the winner and send results
@@ -493,7 +506,7 @@ int player1_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 
 int player2_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDLE player2_event, char *username, SOCKET t_socket) {
 	DWORD wait_code;
-	char *to_send[MAX_MESSAGE_TYPE_LENGTH];
+	char *to_send[MAX_MESSAGE_TYPE_LENGTH + MAX_USERNAME_LEN];
 	int max_size = MAX_MESSAGE_TYPE_LENGTH + MAX_USERNAME_LEN;
 	char *username_read = NULL;
 	char *choice_str = NULL;
@@ -521,13 +534,18 @@ int player2_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 
 	while (player1_replay == TRUE && player2_replay == TRUE) {
 		// game
+		printf("t_socket2: %p\n", t_socket);
+
 		int player1_choice = -1;
 		int player2_choice = -1;
 		int ret_code = ask_and_receive_move(&player2_choice, t_socket);
 		if (ret_code < 0) {
 			return ret_code;
 		}
-		wait_code = WaitForSingleObject(player1_event, INFINITE);	// wait for threads to run TODO change timeout
+		wait_code = WaitForSingleObject(player1_event, RESPONSE_TIMEOUT);	// wait for threads to run TODO change timeout
+		if (WAIT_TIMEOUT == wait_code) {
+			return ERR_CODE_DEFAULT;
+		}
 		choice_str = GetFileLastRow(fd);
 		player1_choice = name_to_number(choice_str);
 		// lock file mutex

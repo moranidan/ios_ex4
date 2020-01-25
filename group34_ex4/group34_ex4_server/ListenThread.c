@@ -44,7 +44,7 @@ DWORD WINAPI ListenThread(LPVOID lpParam) {
 												  // time comes.
 			is_full = TRUE;
 
-			p_cthread_params->WorkerSocket = &AcceptSocket;
+			p_cthread_params->WorkerSocket = AcceptSocket;
 			p_cthread_params->Done = p_params->Done;
 			p_cthread_params->is_full = &is_full;
 			p_params->SpareHandle = CreateThread(

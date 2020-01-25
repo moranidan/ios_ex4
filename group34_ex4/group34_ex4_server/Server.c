@@ -26,7 +26,7 @@ static HANDLE CreateThreadSimple(
 
 void MainServer(char *argv[])
 {
-	delete_file();
+	delete_file();	// if gemwsession.txt exists, delete it
 	int Ind;
 	int Loop;
 	SOCKET MainSocket = INVALID_SOCKET;
@@ -69,14 +69,6 @@ void MainServer(char *argv[])
 	}
 
 	// Bind the socket.
-	/*
-		For a server to accept client connections, it must be bound to a network address within the system.
-		The following code demonstrates how to bind a socket that has already been created to an IP address
-		and port.
-		Client applications use the IP address and port to connect to the host network.
-		The sockaddr structure holds information regarding the address family, IP address, and port number.
-		sockaddr_in is a subset of sockaddr and is used for IP version 4 applications.
-   */
    // Create a sockaddr_in object and set its values.
    // Declare variables
 
@@ -92,13 +84,6 @@ void MainServer(char *argv[])
 	service.sin_addr.s_addr = Address;
 	service.sin_port = htons(atoi(argv[1])); //The htons function converts a u_short from host to TCP/IP network byte order 
 									   //( which is big-endian ).
-	/*
-		The three lines following the declaration of sockaddr_in service are used to set up
-		the sockaddr structure:
-		AF_INET is the Internet address family.
-		"127.0.0.1" is the local IP address to which the socket will be bound.
-		2345 is the port number to which the socket will be bound.
-	*/
 
 	// Call the bind function, passing the created socket and the sockaddr_in structure as parameters. 
 	// Check for general errors.
@@ -121,7 +106,6 @@ void MainServer(char *argv[])
 	for (Ind = 0; Ind < NUM_OF_WORKER_THREADS; Ind++)
 		ThreadHandles[Ind] = NULL;
 
-	
 	p_lthread_params->ThreadHandles = ThreadHandles;
 	p_lthread_params->ThreadInputs = ThreadInputs;
 	p_lthread_params->SpareHandle = &SpareHandle;
@@ -133,8 +117,7 @@ void MainServer(char *argv[])
 		printf("Error when creating thread: %d\n", GetLastError());
 		goto server_cleanup_2;
 	}
-
-
+	// wait for "exit" to be typed
 	while (1)
 	{
 		char keyboard[6];
@@ -180,7 +163,6 @@ server_cleanup_1:
 		printf("Failed to close Winsocket, error %ld. Ending program.\n", WSAGetLastError());
 }
 
-/*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
 /*oOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoOoO*/
 
