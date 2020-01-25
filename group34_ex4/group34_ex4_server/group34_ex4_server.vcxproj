@@ -131,7 +131,7 @@
     <ClCompile Include="Server.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Shared\SharedHardCodedData.h" />
+    <ClInclude Include="..\Shared\SharedHardCodedDataAndFunctions.h" />
     <ClInclude Include="..\Shared\SocketExampleShared.h" />
     <ClInclude Include="..\Shared\SocketSendRecvTools.h" />
     <ClInclude Include="ConnectionThread.h" />

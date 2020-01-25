@@ -59,7 +59,7 @@
     <ClInclude Include="ListenThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Shared\SharedHardCodedData.h">
+    <ClInclude Include="..\Shared\SharedHardCodedDataAndFunctions.h">
       <Filter>Shared Header Files</Filter>
     </ClInclude>
   </ItemGroup>
