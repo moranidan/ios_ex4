@@ -108,4 +108,3 @@ Input:  HANDLE *handle - pointer to the handle to be closed
 Output: void
 */
 void close_handle(HANDLE *handle);
-

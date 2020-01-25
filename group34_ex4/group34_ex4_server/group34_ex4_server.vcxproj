@@ -126,6 +126,7 @@
     <ClCompile Include="..\Shared\SharedFunctions.c" />
     <ClCompile Include="..\Shared\SocketSendRecvTools.c" />
     <ClCompile Include="ConnectionThread.c" />
+    <ClCompile Include="Leaderboard.c" />
     <ClCompile Include="ListenThread.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="Server.c" />
@@ -136,6 +137,7 @@
     <ClInclude Include="..\Shared\SocketSendRecvTools.h" />
     <ClInclude Include="ConnectionThread.h" />
     <ClInclude Include="HardCodedData.h" />
+    <ClInclude Include="Leaderboard.h" />
     <ClInclude Include="ListenThread.h" />
     <ClInclude Include="Server.h" />
   </ItemGroup>

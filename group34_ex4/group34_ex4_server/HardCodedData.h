@@ -43,6 +43,14 @@
 
 #define GAME_SESSION_PATH "GameSession.txt"
 
+#define LEADERBOARD_PATH "leaderboard.csv"
+
+#define LEADERBOARD_MUTEX "leaderboard_mutex"
+
+#define LEADERBOARD_SEMAPHORE "leaderboard_semaphore"
+
+#define WRITE_MUTEX "write_mutex"
+
 static LPCTSTR PLAYER1_EVENT_NAME = _T("Player1event");
 
 static LPCTSTR PLAYER2_EVENT_NAME = _T("Player2event");

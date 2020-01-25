@@ -38,6 +38,9 @@ void MainServer(char *argv[])
 		goto server_cleanup_2;
 	}
 
+	// Initialize leaderboard
+	initialize_leaderboard();
+
 	// Initialize Winsock.
 	WSADATA wsaData;
 	int StartupRes = WSAStartup(MAKEWORD(2, 2), &wsaData);

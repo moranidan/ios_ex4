@@ -58,7 +58,7 @@ DWORD ServiceThread(LPVOID lpParam)
 		}
 		else if (main_menu_decision == CLIENT_LEADERBOARD) {
 			printf("leaderboard\n");
-			//leaderboard();
+			leaderboard(t_socket);
 		}
 		else if (main_menu_decision == CLIENT_DISCONNECT) {
 			Done = TRUE;
@@ -243,14 +243,17 @@ int find_and_send_winner(int *player1_choice, int *player2_choice, char *player1
 	number_to_name(*player1_choice, player1_move);
 	char player2_move[MAX_MOVE_LEN];
 	number_to_name(*player2_choice, player2_move);
+	char *username = NULL;
 
 	char *send_params[4] = { NULL, NULL, NULL, NULL };
 	if (you == 1) {
+		username = player1_username;
 		send_params[0] = player2_username;
 		send_params[1] = player2_move;
 		send_params[2] = player1_move;
 	}
 	else if (you == 2) {
+		username = player2_username;
 		send_params[0] = player1_username;
 		send_params[1] = player1_move;
 		send_params[2] = player2_move;
@@ -261,10 +264,13 @@ int find_and_send_winner(int *player1_choice, int *player2_choice, char *player1
 	}
 	else {
 		if (player_win(*player1_choice, *player2_choice) == TRUE) {
+			update_line(username, 1);
 			send_params[3] = player1_username;
 			create_string_to_send(to_send, "SERVER_GAME_RESULTS", &send_params, &max_size);
 		}
 		else {
+			update_line(username, 1);
+
 			send_params[3] = player2_username;
 			create_string_to_send(to_send, "SERVER_GAME_RESULTS", &send_params, &max_size);
 		}
@@ -591,7 +597,7 @@ int player2_game(FILE *fd, HANDLE file_mutex_handle, HANDLE player1_event, HANDL
 
 
 BOOL file_exists(FILE *fd) {
-	if (PathFileExists((LPCTSTR) "GameSession.txt") == TRUE) {
+	if (PathFileExists((LPCTSTR) GAME_SESSION_PATH) == TRUE) {
 		return TRUE;
 	}
 	else {
